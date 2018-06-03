@@ -4,13 +4,34 @@
 			"User": "Benutzer",
 			"Password": "Passwort",
 
-			"Test account": "Test der Zugangsdaten",
+			"Test account": "Zugangsdaten überprüfen",
+
+			"telno": "Telefonnummer",
+			"msg": "Nachricht",
+			"Test SMS": "SMS testen",
+
+			"Show Call-History": "Anruf-Historie anzeigen",
+
+			"invalid account-data": "ungültige Zugangsdaten",
+			"company": "Firma",
+			"user-id": "Kunden-Nr.",
+			"sip-id": "SIP-ID",
+			"name": "Name",
+			"missing telno": "Telefonnummer fehlt",
+			"result of test": "Ergebnis des Tests",
+			"success": "Erfolg",
+			"failure": "Fehlschlag",
+			"no history": "kein Historie anrufbar",
+			"call-history:": "Anruf-Historie",
 
 			"Instance getting created": "Instanz wird erstellt",
 			"Instance is active": "Instanz ist aktiv",
 			"Instance is inactive": "Instanz ist inaktiv",
 
-			"Instance is inactive (invalid configuration)": "Instanz ist inaktiv (ungültige Konfiguration)"
+			"Instance is inactive (unauthorized)": "Instanz ist inaktiv (Authorisierung fehlerhaft)",
+			"Instance is inactive (server error)": "Instanz ist inaktiv (Serverfehler)",
+			"Instance is inactive (http error)": "Instanz ist inaktiv (HTTP-Fehler)",
+			"Instance is inactive (invalid data)": "Instanz ist inaktiv (ungültige Daten)"
 		}
 	}
 }
