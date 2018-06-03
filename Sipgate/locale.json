@@ -1,0 +1,16 @@
+{
+	"translations": {
+		"de": {
+			"User": "Benutzer",
+			"Password": "Passwort",
+
+			"Test account": "Test der Zugangsdaten",
+
+			"Instance getting created": "Instanz wird erstellt",
+			"Instance is active": "Instanz ist aktiv",
+			"Instance is inactive": "Instanz ist inaktiv",
+
+			"Instance is inactive (invalid configuration)": "Instanz ist inaktiv (ungültige Konfiguration)"
+		}
+	}
+}

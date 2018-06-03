@@ -1,0 +1,13 @@
+{
+	"id": "{D8C71279-8E04-4466-8996-04B6B6CF2B1D}",
+	"name": "Sipgate",
+	"type": 3,
+	"vendor": "Sipgate",
+	"aliases": [
+		"Sipgate Basic"
+	],
+	"parentRequirements": [],
+	"childRequirements": [],
+	"implemented": [],
+	"prefix": "Sipgate"
+}
