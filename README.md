@@ -80,3 +80,6 @@ GUIDs
 - Modul: `{A110B4EA-FE52-4351-8922-B2B751179BAD}`
 - Instanzen:
   - Sipgate: `{D8C71279-8E04-4466-8996-04B6B6CF2B1D}`
+
+API-Dokumentation:
+https://developer.sipgate.io/rest-api/api-reference/
