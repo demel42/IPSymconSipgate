@@ -48,7 +48,13 @@ In dem Konfigurationsdialog die Zugangsdaten des Ac℅ounts eintragen.
 
 ### zentrale Funktion
 
-`Sipgate_SendSMS(integer $InstanzID, string Telno, string Message)`
+`boolean Sipgate_SendSMS(integer $InstanzID, string Telno, string Message)`
+
+Sendet eine SMS an die angegebene nUmmer. Die Länge der SMS wird ggfs auf 160 Zeichen verkürzt.
+Der Rückgabewert ist true, wenn die SMS an Sipgate abgesendet werden konnte, eine Information, ob die SMS den Empfänger ereeichen konnte gibt es (leider) nicht.
+
+`boolean Sipgate_GetHistory(integer $InstanzID)`
+liefert eine JSON-Struktur zurück mit den Daten der Anruf-Historie, Beispiel siehe _TestHistory_.
 
 ## 5. Konfiguration:
 
@@ -63,7 +69,9 @@ In dem Konfigurationsdialog die Zugangsdaten des Ac℅ounts eintragen.
 
 | Bezeichnung                  | Beschreibung |
 | :--------------------------: | :------------------------------------------------: |
-| Verbindungstest              | Testet den Account-Zugriff |
+| Zugangsdaten überprüfen      | Testet die Zugangsdaten und gibt Accout-Details aus |
+| SMS testen                   | SMS-Funktion testen |
+| Anruf-Historie abrufen       | Anruf-Historie abrufen und ausgeben |
 
 ## 6. Anhang
 
