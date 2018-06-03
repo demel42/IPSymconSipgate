@@ -17,16 +17,16 @@ class Sipgate extends IPSModule
         $user = $this->ReadPropertyString('user');
         $password = $this->ReadPropertyString('password');
 
-		$ok = true;
-		if ($user == '') {
-			echo 'no value for property "user"';
-			$ok = false;
-		}
-		if ($password == '') {
-			echo 'no value for property "password"';
-			$ok = false;
-		}
-		$this->SetStatus($ok ? 102 : 201);
+        $ok = true;
+        if ($user == '') {
+            echo 'no value for property "user"';
+            $ok = false;
+        }
+        if ($password == '') {
+            echo 'no value for property "password"';
+            $ok = false;
+        }
+        $this->SetStatus($ok ? 102 : 201);
     }
 
     public function TestAccount()
@@ -36,5 +36,4 @@ class Sipgate extends IPSModule
     public function SendSMS(string $Telno, string $Msg)
     {
     }
-
 }
