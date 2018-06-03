@@ -81,5 +81,4 @@ GUIDs
 - Instanzen:
   - Sipgate: `{D8C71279-8E04-4466-8996-04B6B6CF2B1D}`
 
-API-Dokumentation:
-https://developer.sipgate.io/rest-api/api-reference/
+API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
