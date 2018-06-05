@@ -336,10 +336,10 @@ class Sipgate extends IPSModule
         }
         if ($postdata != '') {
             $this->SendDebug(__FUNCTION__, '    postdata=' . json_encode($postdata), 0);
-			if ($customrequest == '') {
-				curl_setopt($ch, CURLOPT_POST, true);
-			}
-			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postdata));
+            if ($customrequest == '') {
+                curl_setopt($ch, CURLOPT_POST, true);
+            }
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postdata));
         }
         if ($customrequest != '') {
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $customrequest);
@@ -494,13 +494,13 @@ class Sipgate extends IPSModule
     public function SetForwarding(string $destination, int $timeout, bool $active, $deviceId = 'p0')
     {
         $postdata = [
-			'forwardings' => [
-						[
-							'destination' => $destination,
-							'timeout'     => $timeout,
-							'active'      => $active
-						]
-				]
+            'forwardings' => [
+                        [
+                            'destination' => $destination,
+                            'timeout'     => $timeout,
+                            'active'      => $active
+                        ]
+                ]
             ];
         $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', $postdata, true, 'PUT');
         if ($cdata == '') {
