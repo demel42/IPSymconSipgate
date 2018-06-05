@@ -74,52 +74,52 @@ class Sipgate extends IPSModule
             $lastname = '';
         }
 
-        $msg = $this->translate('valid account-data') . "\n";;
+        $msg = $this->translate('valid account-data') . "\n";
 
         if ($company != '') {
             $msg = '  ' . $this->Translate('company') . '=' . $company . "\n";
         }
         $msg .= '  ' . $this->Translate('user-id') . '=' . $userid . "\n";
         $msg .= '  ' . $this->Translate('sip-id') . '=' . $masterSipId . "\n";
-        $msg .= '  ' . $this->Translate('name') . '=' . $firstname . ' ' . $lastname . "\n";;
+        $msg .= '  ' . $this->Translate('name') . '=' . $firstname . ' ' . $lastname . "\n";
 
         $cdata = $this->do_ApiCall('/w0/phonelines', '', true, 'GET');
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-		$msg .= "\n";
+        $msg .= "\n";
         $msg .= $this->translate('phonelines') . "\n";
         $items = $jdata['items'];
         foreach ($items as $item) {
             $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
-			$id = $item['id'];
-			$alias = $item['alias'];
+            $id = $item['id'];
+            $alias = $item['alias'];
 
-			$msg .= '  ';
-			$msg .= $this->Translate('phone-id') . '=' . $id;
-			$msg .= ', ';
-			$msg .= $this->Translate('alias') . '=' . $alias;
-			$msg .= "\n";
-		}
+            $msg .= '  ';
+            $msg .= $this->Translate('phone-id') . '=' . $id;
+            $msg .= ', ';
+            $msg .= $this->Translate('alias') . '=' . $alias;
+            $msg .= "\n";
+        }
 
         $cdata = $this->do_ApiCall('/w0/devices', '', true, 'GET');
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
         $items = $jdata['items'];
 
-		$msg .= "\n";
+        $msg .= "\n";
         $msg .= $this->translate('devices') . "\n";
         foreach ($items as $item) {
             $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
-			$id = $item['id'];
-			$alias = $item['alias'];
+            $id = $item['id'];
+            $alias = $item['alias'];
 
-			$msg .= '  ';
-			$msg .= $this->Translate('device-id') . '=' . $id;
-			$msg .= ', ';
-			$msg .= $this->Translate('alias') . '=' . $alias;
-			$msg .= "\n";
-		}
+            $msg .= '  ';
+            $msg .= $this->Translate('device-id') . '=' . $id;
+            $msg .= ', ';
+            $msg .= $this->Translate('alias') . '=' . $alias;
+            $msg .= "\n";
+        }
         echo $msg;
     }
 
@@ -200,7 +200,7 @@ class Sipgate extends IPSModule
                     $msg .= $this->Translate('message') . '=' . $smsContent;
                     break;
             }
-			$msg .= "\n";
+            $msg .= "\n";
         }
         echo $msg;
     }
@@ -240,7 +240,7 @@ class Sipgate extends IPSModule
             $participants = $this->GetArrayElem($dat, 'participants', '');
             $this->SendDebug(__FUNCTION__, 'participants=' . print_r($participants, true), 0);
 
-			$msg .= "\n";
+            $msg .= "\n";
         }
         echo $msg;
     }
@@ -316,13 +316,14 @@ class Sipgate extends IPSModule
 
         $url = $base_url . $cmd_url;
 
-		if ($customrequest != '')
-			$req = $customrequest;
-		elseif ($postdata != '')
-			$req = 'post';
-		else
-			$req = 'get';
-		//$req = $customrequest != '' ? $customrequest : $postdata != '' ? 'post' : 'get';
+        if ($customrequest != '') {
+            $req = $customrequest;
+        } elseif ($postdata != '') {
+            $req = 'post';
+        } else {
+            $req = 'get';
+        }
+        //$req = $customrequest != '' ? $customrequest : $postdata != '' ? 'post' : 'get';
         $this->SendDebug(__FUNCTION__, 'cmd_url=' . $cmd_url . ', customrequest=' . $customrequest . ', req=' . $req, 0);
 
         $this->SendDebug(__FUNCTION__, 'http-' . $req . ': url=' . $url, 0);
@@ -339,9 +340,9 @@ class Sipgate extends IPSModule
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postdata));
         }
-		if ($customrequest != '') {
-			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $customrequest);
-		}
+        if ($customrequest != '') {
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $customrequest);
+        }
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -461,13 +462,13 @@ class Sipgate extends IPSModule
 
     public function TestAnnouncement()
     {
-		$wav_url = 'https://static.sipgate.com/examples/wav/example.wav';
+        $wav_url = 'https://static.sipgate.com/examples/wav/example.wav';
 
-		$postdata = [
-				'caller'   => 'e1',
-				'callee'   => '+491718883302',
-				'callerId' => '+4923274178948'
-			];
+        $postdata = [
+                'caller'   => 'e1',
+                'callee'   => '+491718883302',
+                'callerId' => '+4923274178948'
+            ];
 
         $cdata = $this->do_ApiCall('/sessions/calls', $postdata, true);
         if ($cdata == '') {
@@ -477,15 +478,15 @@ class Sipgate extends IPSModule
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
         $sessionId = $jdata['sessionId'];
 
-		/*
-		sleep (15);
+        /*
+        sleep (15);
 
-		$postdata = [
-				'url'   => $wav_url
-			];
-		$cdata = $this->do_ApiCall('/calls/' . $sessionId . '/announcements', $postdata, true);
-		*/
-	}
+        $postdata = [
+                'url'   => $wav_url
+            ];
+        $cdata = $this->do_ApiCall('/calls/' . $sessionId . '/announcements', $postdata, true);
+        */
+    }
 
     public function GetForwardings($deviceId = 'p0')
     {
@@ -494,7 +495,7 @@ class Sipgate extends IPSModule
 
         $this->SetStatus(102);
         return $cdata;
-	}
+    }
 
     public function ShowForwardings()
     {
@@ -502,45 +503,44 @@ class Sipgate extends IPSModule
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-		$msg = $this->Translate('current forwardings') . ":\n";
+        $msg = $this->Translate('current forwardings') . ":\n";
 
         $phones = $jdata['items'];
         foreach ($phones as $phone) {
             $this->SendDebug(__FUNCTION__, 'phone=' . print_r($phone, true), 0);
-			$id = $phone['id'];
-			$alias = $phone['alias'];
+            $id = $phone['id'];
+            $alias = $phone['alias'];
 
-			$msg .= '  ';
-			$msg .= $this->Translate('phoneline') . '=' . $id;
-			$msg .= ', ';
-			$msg .= $this->Translate('alias') . '=' . $alias;
-			$msg .= "\n";
+            $msg .= '  ';
+            $msg .= $this->Translate('phoneline') . '=' . $id;
+            $msg .= ', ';
+            $msg .= $this->Translate('alias') . '=' . $alias;
+            $msg .= "\n";
 
-			$cdata = $this->GetForwardings($id);
-			$jdata = json_decode($cdata, true);
-			$this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+            $cdata = $this->GetForwardings($id);
+            $jdata = json_decode($cdata, true);
+            $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-			$forwards = $jdata['items'];
-			foreach ($forwards as $forward) {
-				$this->SendDebug(__FUNCTION__, 'forward=' . print_r($forward, true), 0);
+            $forwards = $jdata['items'];
+            foreach ($forwards as $forward) {
+                $this->SendDebug(__FUNCTION__, 'forward=' . print_r($forward, true), 0);
 
-				$alias = $this->GetArrayElem($forward, 'alias', '');
-				$destination = $this->GetArrayElem($forward, 'destination', '');
-				$timeout = $this->GetArrayElem($forward, 'timeout', '');
-				$active = $this->GetArrayElem($forward, 'active', '');
+                $alias = $this->GetArrayElem($forward, 'alias', '');
+                $destination = $this->GetArrayElem($forward, 'destination', '');
+                $timeout = $this->GetArrayElem($forward, 'timeout', '');
+                $active = $this->GetArrayElem($forward, 'active', '');
 
-				$msg .= '    ';
-				if ($active) {
-					$msg .= $this->Translate('destination') . '=' . $destination;
-					$msg .= ', ';
-					$msg .= $this->Translate('alias') . '=' . $alias;
-					$msg .= ', ';
-					$msg .= $this->Translate('timeout') . '=' . $timeout;
-				}
-				$msg .= "\n";
-			}
-
-		}
-		echo $msg;
-	}
+                $msg .= '    ';
+                if ($active) {
+                    $msg .= $this->Translate('destination') . '=' . $destination;
+                    $msg .= ', ';
+                    $msg .= $this->Translate('alias') . '=' . $alias;
+                    $msg .= ', ';
+                    $msg .= $this->Translate('timeout') . '=' . $timeout;
+                }
+                $msg .= "\n";
+            }
+        }
+        echo $msg;
+    }
 }
