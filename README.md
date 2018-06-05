@@ -15,7 +15,11 @@ Modul für IP-Symcon ab Version 4.4
 
 ## 1. Funktionsumfang
 
-...
+ - Anrufhistorie abrufen
+ 
+ - SMS verschicken<br>
+ Hierzu muss im sipgate die Funktion _SMS versenden_ aktivert werden. Die Funktion an sich ist (zur Zeit) kostenlos, es wird pro SMS bezahlt.<br>
+Besonderheit: wird die SMS an ein Festnetzanschluss geschickt, ruft sipgate diese Nummer an und liest den Text vor.
 
 ## 2. Voraussetzungen
 
