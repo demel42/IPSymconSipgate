@@ -43,7 +43,7 @@ class Sipgate extends IPSModule
 
     public function TestAccount()
     {
-        $cdata = $this->do_ApiCall('/account', '', true);
+        $cdata = $this->do_ApiCall('/account', '', true, 'GET');
         if ($cdata == '') {
             echo $this->Translate('invalid account-data');
             return;
@@ -51,22 +51,19 @@ class Sipgate extends IPSModule
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-        // cdata={"company":"","mainProductType":"BASIC","logoUrl":"","verified":true}
         $company = $jdata['company'];
 
-        $cdata = $this->do_ApiCall('/authorization/userinfo', '', true);
+        $cdata = $this->do_ApiCall('/authorization/userinfo', '', true, 'GET');
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-        // cdata={"userId":"455428","sub":"w0","domain":"sipgate.de","masterSipId":"2326984","locale":"de_DE","isTestAccount":false,"isAdmin":true,"product":"basic","flags":["FRONTEND2016"]}
         $userid = $jdata['userId'];
         $masterSipId = $jdata['masterSipId'];
 
-        $cdata = $this->do_ApiCall('/users', '', true);
+        $cdata = $this->do_ApiCall('/users', '', true, 'GET');
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-        // cdata={"items":[{"id":"w0","firstname":"Christian","lastname":"Damsky","email":"christian@damsky.name","defaultDevice":"e0","busyOnBusy":false,"admin":true}]}
         $items = $jdata['items'];
         if (count($items) > 0) {
             $item = $items[0];
@@ -77,30 +74,52 @@ class Sipgate extends IPSModule
             $lastname = '';
         }
 
-        $msg = $this->translate('valid account-data');
+        $msg = $this->translate('valid account-data') . "\n";;
 
         if ($company != '') {
-            if ($msg != '') {
-                $msg .= "\n";
-            }
-            $msg = '  ' . $this->Translate('company') . '=' . $company;
+            $msg = '  ' . $this->Translate('company') . '=' . $company . "\n";
         }
+        $msg .= '  ' . $this->Translate('user-id') . '=' . $userid . "\n";
+        $msg .= '  ' . $this->Translate('sip-id') . '=' . $masterSipId . "\n";
+        $msg .= '  ' . $this->Translate('name') . '=' . $firstname . ' ' . $lastname . "\n";;
 
-        if ($msg != '') {
-            $msg .= "\n";
-        }
-        $msg .= '  ' . $this->Translate('user-id') . '=' . $userid;
+        $cdata = $this->do_ApiCall('/w0/phonelines', '', true, 'GET');
+        $jdata = json_decode($cdata, true);
+        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-        if ($msg != '') {
-            $msg .= "\n";
-        }
-        $msg .= '  ' . $this->Translate('sip-id') . '=' . $masterSipId;
+		$msg .= "\n";
+        $msg .= $this->translate('phonelines') . "\n";
+        $items = $jdata['items'];
+        foreach ($items as $item) {
+            $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
+			$id = $item['id'];
+			$alias = $item['alias'];
 
-        if ($msg != '') {
-            $msg .= "\n";
-        }
-        $msg .= '  ' . $this->Translate('name') . '=' . $firstname . ' ' . $lastname;
+			$msg .= '  ';
+			$msg .= $this->Translate('phone-id') . '=' . $id;
+			$msg .= ', ';
+			$msg .= $this->Translate('alias') . '=' . $alias;
+			$msg .= "\n";
+		}
 
+        $cdata = $this->do_ApiCall('/w0/devices', '', true, 'GET');
+        $jdata = json_decode($cdata, true);
+        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+        $items = $jdata['items'];
+
+		$msg .= "\n";
+        $msg .= $this->translate('devices') . "\n";
+        foreach ($items as $item) {
+            $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
+			$id = $item['id'];
+			$alias = $item['alias'];
+
+			$msg .= '  ';
+			$msg .= $this->Translate('device-id') . '=' . $id;
+			$msg .= ', ';
+			$msg .= $this->Translate('alias') . '=' . $alias;
+			$msg .= "\n";
+		}
         echo $msg;
     }
 
@@ -136,11 +155,11 @@ class Sipgate extends IPSModule
 
     public function GetHistory()
     {
-        $cdata = $this->do_ApiCall('/history', '', true);
+        $cdata = $this->do_ApiCall('/history', '', true, 'GET');
         return $cdata;
     }
 
-    public function TestHistory()
+    public function ShowHistory()
     {
         $cdata = $this->GetHistory();
         if ($cdata == '') {
@@ -149,7 +168,7 @@ class Sipgate extends IPSModule
         }
         $jdata = json_decode($cdata, true);
 
-        $msg = $this->Translate('call-history:');
+        $msg = $this->Translate('call-history') . ":\n";
         $items = $jdata['items'];
         foreach ($items as $item) {
             $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
@@ -159,31 +178,69 @@ class Sipgate extends IPSModule
             $source = $this->GetArrayElem($item, 'source', '');
             $target = $this->GetArrayElem($item, 'target', '');
 
-            if ($msg != '') {
-                $msg .= "\n";
-            }
             $msg .= '  ';
-            $msg .= 'created=' . date('d.m. H:i', $created);
+            $msg .= date('d.m. H:i', $created);
+            $msg .= '  ';
+            $msg .= $this->Translate('direction') . '=' . $direction;
             $msg .= ', ';
-            $msg .= 'direction=' . $direction;
+            $msg .= $this->Translate('source') . '=' . $source;
             $msg .= ', ';
-            $msg .= 'source=' . $source;
-            $msg .= ', ';
-            $msg .= 'target=' . $target;
+            $msg .= $this->Translate('target') . '=' . $target;
 
             $type = $this->GetArrayElem($item, 'type', '');
             switch ($type) {
                 case 'CALL':
                     $duration = $this->GetArrayElem($item, 'duration', 0);
                     $msg .= ', ';
-                    $msg .= 'duration=' . $duration;
+                    $msg .= $this->Translate('duration') . '=' . $duration;
                     break;
                 case 'SMS':
                     $smsContent = $this->GetArrayElem($item, 'smsContent', '');
                     $msg .= ', ';
-                    $msg .= 'message=' . $smsContent;
+                    $msg .= $this->Translate('message') . '=' . $smsContent;
                     break;
             }
+			$msg .= "\n";
+        }
+        echo $msg;
+    }
+
+    public function GetCallList()
+    {
+        $cdata = $this->do_ApiCall('/calls', '', true, 'GET');
+        return $cdata;
+    }
+
+    public function ShowCallList()
+    {
+        $cdata = $this->GetCallList();
+        if ($cdata == '') {
+            echo $this->Translate('no current calls');
+            return;
+        }
+        $jdata = json_decode($cdata, true);
+
+        $msg = $this->Translate('current calls') . ":\n";
+        $data = $jdata['data'];
+        foreach ($data as $dat) {
+            $this->SendDebug(__FUNCTION__, 'dat=' . print_r($dat, true), 0);
+
+            $direction = $this->GetArrayElem($dat, 'direction', '');
+            $muted = $this->GetArrayElem($dat, 'muted', '');
+            $recording = $this->GetArrayElem($dat, 'recording', '');
+            $hold = $this->GetArrayElem($dat, 'hold', '');
+
+            $msg .= '  ';
+            $msg .= $this->Translate('muted') . '=' . $muted ? 'true' : 'false';
+            $msg .= ', ';
+            $msg .= $this->Translate('recording') . '=' . $recording ? 'true' : 'false';
+            $msg .= ', ';
+            $msg .= $this->Translate('hold') . '=' . $hold ? 'true' : 'false';
+
+            $participants = $this->GetArrayElem($dat, 'participants', '');
+            $this->SendDebug(__FUNCTION__, 'participants=' . print_r($participants, true), 0);
+
+			$msg .= "\n";
         }
         echo $msg;
     }
@@ -227,7 +284,7 @@ class Sipgate extends IPSModule
         return $token;
     }
 
-    private function do_ApiCall($cmd_url, $postdata = '', $isJson = true)
+    private function do_ApiCall($cmd_url, $postdata = '', $isJson = true, $customrequest = '')
     {
         $token = $this->getToken();
         if ($token == '') {
@@ -237,29 +294,38 @@ class Sipgate extends IPSModule
         $header = [];
         $header[] = 'Accept: application/json';
 
-        if ($postdata == '') {
-            $header[] = 'Content-Type: application/x-www-form-urlencoded';
-        } else {
+        if ($postdata != '') {
             $header[] = 'Content-Type: application/json';
             $header[] = 'Content-Length: ' . strlen(json_encode($postdata));
+        } elseif ($customrequest == '') {
+            $header[] = 'Content-Type: application/x-www-form-urlencoded';
         }
 
         $header[] = 'Authorization: Bearer ' . $token;
 
-        $cdata = $this->do_HttpRequest($cmd_url, $header, $postdata, $isJson);
+        $cdata = $this->do_HttpRequest($cmd_url, $header, $postdata, $isJson, $customrequest);
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
 
         $this->SetStatus(102);
         return $cdata;
     }
 
-    private function do_HttpRequest($cmd_url, $header = '', $postdata = '', $isJson = true)
+    private function do_HttpRequest($cmd_url, $header = '', $postdata = '', $isJson = true, $customrequest = '')
     {
         $base_url = 'https://api.sipgate.com/v2';
 
         $url = $base_url . $cmd_url;
 
-        $this->SendDebug(__FUNCTION__, 'http-' . ($postdata != '' ? 'post' : 'get') . ': url=' . $url, 0);
+		if ($customrequest != '')
+			$req = $customrequest;
+		elseif ($postdata != '')
+			$req = 'post';
+		else
+			$req = 'get';
+		//$req = $customrequest != '' ? $customrequest : $postdata != '' ? 'post' : 'get';
+        $this->SendDebug(__FUNCTION__, 'cmd_url=' . $cmd_url . ', customrequest=' . $customrequest . ', req=' . $req, 0);
+
+        $this->SendDebug(__FUNCTION__, 'http-' . $req . ': url=' . $url, 0);
         $time_start = microtime(true);
 
         $ch = curl_init();
@@ -273,6 +339,9 @@ class Sipgate extends IPSModule
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postdata));
         }
+		if ($customrequest != '') {
+			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $customrequest);
+		}
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -319,11 +388,159 @@ class Sipgate extends IPSModule
         }
 
         if ($statuscode) {
-            echo "url=$url => statuscode=$statuscode, err=$err";
+            echo "url=$url => statuscode=$statuscode, err=$err\n";
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
             $this->SetStatus($statuscode);
         }
 
         return $data;
     }
+
+    private function do_HttpDelete($cmd_url, $header = '')
+    {
+        $base_url = 'https://api.sipgate.com/v2';
+
+        $url = $base_url . $cmd_url;
+
+        $this->SendDebug(__FUNCTION__, 'http-delete: url=' . $url, 0);
+        $time_start = microtime(true);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        if ($header != '') {
+            $this->SendDebug(__FUNCTION__, '    header=' . print_r($header, true), 0);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        }
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $cdata = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $duration = floor((microtime(true) - $time_start) * 100) / 100;
+        $this->SendDebug(__FUNCTION__, ' => httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+
+        $statuscode = 0;
+        $err = '';
+        $data = '';
+        if ($httpcode != 200) {
+            if ($httpcode == 401) {
+                $statuscode = 201;
+                $err = "got http-code $httpcode (unauthorized)";
+            } elseif ($httpcode >= 500 && $httpcode <= 599) {
+                $statuscode = 202;
+                $err = "got http-code $httpcode (server error)";
+            } elseif ($httpcode == 204) {
+                // 204 = No Content	= Die Anfrage wurde erfolgreich durchgeführt, die Antwort enthält jedoch bewusst keine Daten.
+                // kommt zB bei senden von SMS
+                $data = json_encode(['status' => 'ok']);
+            } else {
+                $statuscode = 203;
+                $err = "got http-code $httpcode";
+            }
+        }
+
+        if ($statuscode) {
+            echo "url=$url => statuscode=$statuscode, err=$err\n";
+            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
+            $this->SetStatus($statuscode);
+        }
+
+        return $data;
+    }
+
+    public function Hangup(string $callId)
+    {
+        $cdata = $this->do_ApiCall('/calls/' . $callId, '', true, 'DELETE');
+        $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
+
+        $this->SetStatus(102);
+        return $cdata;
+    }
+
+    public function TestAnnouncement()
+    {
+		$wav_url = 'https://static.sipgate.com/examples/wav/example.wav';
+
+		$postdata = [
+				'caller'   => 'e1',
+				'callee'   => '+491718883302',
+				'callerId' => '+4923274178948'
+			];
+
+        $cdata = $this->do_ApiCall('/sessions/calls', $postdata, true);
+        if ($cdata == '') {
+            return;
+        }
+        $jdata = json_decode($cdata, true);
+        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+        $sessionId = $jdata['sessionId'];
+
+		/*
+		sleep (15);
+
+		$postdata = [
+				'url'   => $wav_url
+			];
+		$cdata = $this->do_ApiCall('/calls/' . $sessionId . '/announcements', $postdata, true);
+		*/
+	}
+
+    public function GetForwardings($deviceId = 'p0')
+    {
+        $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', '', true, 'GET');
+        $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
+
+        $this->SetStatus(102);
+        return $cdata;
+	}
+
+    public function ShowForwardings()
+    {
+        $cdata = $this->do_ApiCall('/w0/phonelines', '', true, 'GET');
+        $jdata = json_decode($cdata, true);
+        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+
+		$msg = $this->Translate('current forwardings') . ":\n";
+
+        $phones = $jdata['items'];
+        foreach ($phones as $phone) {
+            $this->SendDebug(__FUNCTION__, 'phone=' . print_r($phone, true), 0);
+			$id = $phone['id'];
+			$alias = $phone['alias'];
+
+			$msg .= '  ';
+			$msg .= $this->Translate('phoneline') . '=' . $id;
+			$msg .= ', ';
+			$msg .= $this->Translate('alias') . '=' . $alias;
+			$msg .= "\n";
+
+			$cdata = $this->GetForwardings($id);
+			$jdata = json_decode($cdata, true);
+			$this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+
+			$forwards = $jdata['items'];
+			foreach ($forwards as $forward) {
+				$this->SendDebug(__FUNCTION__, 'forward=' . print_r($forward, true), 0);
+
+				$alias = $this->GetArrayElem($forward, 'alias', '');
+				$destination = $this->GetArrayElem($forward, 'destination', '');
+				$timeout = $this->GetArrayElem($forward, 'timeout', '');
+				$active = $this->GetArrayElem($forward, 'active', '');
+
+				$msg .= '    ';
+				if ($active) {
+					$msg .= $this->Translate('destination') . '=' . $destination;
+					$msg .= ', ';
+					$msg .= $this->Translate('alias') . '=' . $alias;
+					$msg .= ', ';
+					$msg .= $this->Translate('timeout') . '=' . $timeout;
+				}
+				$msg .= "\n";
+			}
+
+		}
+		echo $msg;
+	}
 }

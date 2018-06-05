@@ -14,7 +14,16 @@
 				{ "type": "Button", "label": "Test SMS", "onClick": "Sipgate_TestSMS($id, $telno, $msg);" },
 
 				{ "type": "Label", "label": "" },
-				{ "type": "Button", "label": "Show Call-History", "onClick": "Sipgate_TestHistory($id);" }
+				{ "type": "Button", "label": "Show Call-History", "onClick": "Sipgate_ShowHistory($id);" },
+
+				{ "type": "Label", "label": "" },
+				{ "type": "Button", "label": "Show current Calls", "onClick": "Sipgate_ShowCallList($id);" },
+
+				{ "type": "Label", "label": "" },
+				{ "type": "Button", "label": "Show current Forwardings", "onClick": "Sipgate_ShowForwardings($id);" },
+
+				{ "type": "Label", "label": "" },
+				{ "type": "Button", "label": "Test Announcement", "onClick": "Sipgate_TestAnnouncement($id);" }
 			],		
 	"status":
 			[
