@@ -300,7 +300,6 @@ class Sipgate extends IPSModule
         } elseif ($customrequest == '') {
             $header[] = 'Content-Type: application/x-www-form-urlencoded';
         }
-
         $header[] = 'Authorization: Bearer ' . $token;
 
         $cdata = $this->do_HttpRequest($cmd_url, $header, $postdata, $isJson, $customrequest);
@@ -336,9 +335,11 @@ class Sipgate extends IPSModule
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         }
         if ($postdata != '') {
-            $this->SendDebug(__FUNCTION__, '    postdata=' . print_r($postdata, true), 0);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postdata));
+            $this->SendDebug(__FUNCTION__, '    postdata=' . json_encode($postdata), 0);
+			if ($customrequest == '') {
+				curl_setopt($ch, CURLOPT_POST, true);
+			}
+			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postdata));
         }
         if ($customrequest != '') {
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $customrequest);
@@ -385,60 +386,6 @@ class Sipgate extends IPSModule
                 }
             } else {
                 $data = $cdata;
-            }
-        }
-
-        if ($statuscode) {
-            echo "url=$url => statuscode=$statuscode, err=$err\n";
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
-        }
-
-        return $data;
-    }
-
-    private function do_HttpDelete($cmd_url, $header = '')
-    {
-        $base_url = 'https://api.sipgate.com/v2';
-
-        $url = $base_url . $cmd_url;
-
-        $this->SendDebug(__FUNCTION__, 'http-delete: url=' . $url, 0);
-        $time_start = microtime(true);
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        if ($header != '') {
-            $this->SendDebug(__FUNCTION__, '    header=' . print_r($header, true), 0);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        }
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        $cdata = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $duration = floor((microtime(true) - $time_start) * 100) / 100;
-        $this->SendDebug(__FUNCTION__, ' => httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
-
-        $statuscode = 0;
-        $err = '';
-        $data = '';
-        if ($httpcode != 200) {
-            if ($httpcode == 401) {
-                $statuscode = 201;
-                $err = "got http-code $httpcode (unauthorized)";
-            } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = 202;
-                $err = "got http-code $httpcode (server error)";
-            } elseif ($httpcode == 204) {
-                // 204 = No Content	= Die Anfrage wurde erfolgreich durchgeführt, die Antwort enthält jedoch bewusst keine Daten.
-                // kommt zB bei senden von SMS
-                $data = json_encode(['status' => 'ok']);
-            } else {
-                $statuscode = 203;
-                $err = "got http-code $httpcode";
             }
         }
 
@@ -542,5 +489,31 @@ class Sipgate extends IPSModule
             }
         }
         echo $msg;
+    }
+
+    public function SetForwarding(string $destination, int $timeout, bool $active, $deviceId = 'p0')
+    {
+        $postdata = [
+			'forwardings' => [
+						[
+							'destination' => $destination,
+							'timeout'     => $timeout,
+							'active'      => $active
+						]
+				]
+            ];
+        $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', $postdata, true, 'PUT');
+        if ($cdata == '') {
+            return false;
+        }
+        $jdata = json_decode($cdata, true);
+        $status = $this->GetArrayElem($jdata, 'status', 'fail');
+        return $status == 'ok' ? true : false;
+    }
+
+    public function TestForwarding(string $destination, int $timeout, bool $active)
+    {
+        $ok = $this->SetForwarding($destination, $timeout, $active);
+        echo $this->Translate('result of test') . ': ' . ($ok ? $this->Translate('success') : $this->Translate('failure'));
     }
 }

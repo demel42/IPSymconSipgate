@@ -13,7 +13,9 @@
 			"Show Call-History": "Anruf-Historie anzeigen",
 			"Show current Calls": "aktuelle Anrufe anzeigen",
 			"Show current Forwardings": "aktuelle Umleitungen anzeigen",
+			"Test Forwarding": "Umleitung einrichten",
 
+			"active": "aktiv",
 			"alias": "Bezeichnung",
 			"call-history": "Anruf-Historie",
 			"company": "Firma",
