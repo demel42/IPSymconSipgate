@@ -1,6 +1,10 @@
-# sipgate
+# IPSymconSipgate
 
-Modul für IP-Symcon ab Version 4.4
+[![Version](https://img.shields.io/badge/Symcon_Version-4.4+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
+![Version](https://img.shields.io/badge/Modul_Version-1.0-blue.svg)
+![Version](https://img.shields.io/badge/Code-PHP-blue.svg)
+[![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![StyleCI](https://github.styleci.io/repos/135898954/shield?branch=master)](https://github.styleci.io/repos/135898954)
 
 ## Dokumentation
 
@@ -15,16 +19,26 @@ Modul für IP-Symcon ab Version 4.4
 
 ## 1. Funktionsumfang
 
+ - Kontostand
+
  - Anrufhistorie abrufen
  
  - SMS verschicken<br>
  Hierzu muss im sipgate die Funktion _SMS versenden_ aktivert werden. Die Funktion an sich ist (zur Zeit) kostenlos, es wird pro SMS bezahlt.<br>
 Besonderheit: wird die SMS an ein Festnetzanschluss geschickt, ruft sipgate diese Nummer an und liest den Text vor.
 
+ - Status der Umleitung abrufen und einstellen
+
+ - Status von DND abrufen und einstellen
+
+ - Status der Benachrichtungen abrufen und einstellen
+
+ - Anruf einleiten
+
 ## 2. Voraussetzungen
 
  - IP-Symcon ab Version 4.4
- - sipgate Basic-Account, ggfs Freischaltung bestimmter Funktionen
+ - Sipgate Basic-Account, ggfs Freischaltung bestimmter Funktionen
 
 ## 3. Installation
 
@@ -46,7 +60,7 @@ Anschließend erscheint ein Eintrag für das Modul in der Liste der Instanz _Mod
 
 In IP-Symcon nun _Instanz hinzufügen_ (_CTRL+1_) auswählen unter der Kategorie, unter der man die Instanz hinzufügen will, und Hersteller _Sipgate_ und als Gerät _Sipgate_ auswählen.
 
-In dem Konfigurationsdialog die Zugangsdaten des Ac℅ounts eintragen.
+In dem Konfigurationsdialog die Zugangsdaten des Accounts eintragen.
 
 ## 4. Funktionsreferenz
 
