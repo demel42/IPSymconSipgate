@@ -22,7 +22,9 @@
 				{ "type": "ValidationTextBox", "name": "destination", "caption": "destination" },
 				{ "type": "NumberSpinner", "name": "timeout", "caption": "timeout" },
 				{ "type": "CheckBox", "name": "active", "caption": "active" },
-				{ "type": "Button", "label": "Test Forwarding", "onClick": "Sipgate_TestForwarding($id, $destination, $timeout, $active);" }
+				{ "type": "Button", "label": "Test Forwarding", "onClick": "Sipgate_TestForwarding($id, $destination, $timeout, $active);" },
+				{ "type": "Label", "label": "____________________________________________________________________________________________________" },
+				{ "type": "Button", "label": "Module description", "onClick": "echo 'https://github.com/demel42/IPSymconSipgate/blob/master/README.md';" }
 			],		
 	"status":
 			[
