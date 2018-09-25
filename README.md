@@ -16,6 +16,7 @@
 4. [Funktionsreferenz](#4-funktionsreferenz)
 5. [Konfiguration](#5-konfiguration)
 6. [Anhang](#6-anhang)
+7. [Versions-Historie](#7-versions-historie)
 
 ## 1. Funktionsumfang
 
@@ -100,3 +101,6 @@ GUIDs
   - Sipgate: `{D8C71279-8E04-4466-8996-04B6B6CF2B1D}`
 
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
+
+- 1.0 @ 03.06.2018 14:01<br>
+  Vorab-Version
