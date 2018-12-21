@@ -102,5 +102,5 @@ GUIDs
 
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
 
-- 1.0 @ 03.06.2018 14:01<br>
+- 0.9 @ 03.06.2018 14:01<br>
   Vorab-Version
