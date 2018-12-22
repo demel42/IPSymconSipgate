@@ -422,7 +422,7 @@ class Sipgate extends IPSModule
         */
     }
 
-    public function GetForwardings($deviceId = 'p0')
+    public function GetForwardings(string $deviceId = 'p0')
     {
         $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', '', true, 'GET');
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
@@ -478,7 +478,7 @@ class Sipgate extends IPSModule
         echo $msg;
     }
 
-    public function SetForwarding(string $destination, int $timeout, bool $active, $deviceId = 'p0')
+    public function SetForwarding(string $destination, int $timeout, bool $active, string $deviceId = 'p0')
     {
         $postdata = [
             'forwardings' => [
