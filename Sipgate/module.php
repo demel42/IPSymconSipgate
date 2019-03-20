@@ -63,7 +63,7 @@ class Sipgate extends IPSModule
         $formStatus[] = ['code' => IS_INVALIDDATA, 'icon' => 'error', 'caption' => 'Instance is inactive (invalid data)'];
 
         return json_encode(['elements' => $formElements, 'actions' => $formActions, 'status' => $formStatus]);
-	}
+    }
 
     public function TestAccount()
     {
