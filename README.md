@@ -1,7 +1,7 @@
 # IPSymconSipgate
 
 [![IPS-Version](https://img.shields.io/badge/Symcon_Version-4.4+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-![Module-Version](https://img.shields.io/badge/Modul_Version-0.9-blue.svg)
+![Module-Version](https://img.shields.io/badge/Modul_Version-1.0.1-blue.svg)
 ![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![StyleCI](https://github.styleci.io/repos/135898954/shield?branch=master)](https://github.styleci.io/repos/135898954)
@@ -101,6 +101,9 @@ GUIDs
   - Sipgate: `{D8C71279-8E04-4466-8996-04B6B6CF2B1D}`
 
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
+
+- 1.0.1 @ 20.03.2019 14:56<br>
+  - Abspaltung von Branch _ips_4.4_
 
 - 0.9 @ 03.06.2018 14:01<br>
   Vorab-Version
