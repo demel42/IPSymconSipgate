@@ -102,6 +102,8 @@ GUIDs
 
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
 
+## 7. Versions-Historie
+
 - 1.0.1 @ 20.03.2019 14:56<br>
   - Abspaltung von Branch _ips_4.4_
 
