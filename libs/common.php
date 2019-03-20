@@ -30,6 +30,13 @@ if (!defined('VARIABLETYPE_BOOLEAN')) {
     define('VARIABLETYPE_STRING', 3);
 }
 
+if (!defined('IS_UNAUTHORIZED')) {
+    define('IS_UNAUTHORIZED', IS_EBASE + 1);
+	define('IS_SERVERERROR', IS_EBASE + 2);
+	define('IS_HTTPERROR', IS_EBASE + 3);
+	define('IS_INVALIDDATA', IS_EBASE + 4);
+}
+
 trait SipgateCommon
 {
     protected function SetValue($Ident, $Value)

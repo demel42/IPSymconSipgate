@@ -1,7 +1,7 @@
 # IPSymconSipgate
 
-[![IPS-Version](https://img.shields.io/badge/Symcon_Version-4.4+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-![Module-Version](https://img.shields.io/badge/Modul_Version-0.9-blue.svg)
+[![IPS-Version](https://img.shields.io/badge/Symcon_Version-5.0+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
+![Module-Version](https://img.shields.io/badge/Modul_Version-1.0-blue.svg)
 ![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![StyleCI](https://github.styleci.io/repos/135898954/shield?branch=master)](https://github.styleci.io/repos/135898954)
@@ -38,7 +38,8 @@ Besonderheit: wird die SMS an ein Festnetzanschluss geschickt, ruft sipgate dies
 
 ## 2. Voraussetzungen
 
- - IP-Symcon ab Version 4.4
+ - IP-Symcon ab Version 5<br>
+   Version 4.4 mit Branch _ips_4.4_ (nur noch Fehlerkorrekturen)
  - Sipgate Basic-Account, ggfs Freischaltung bestimmter Funktionen
 
 ## 3. Installation
@@ -102,5 +103,5 @@ GUIDs
 
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
 
-- 0.9 @ 03.06.2018 14:01<br>
-  Vorab-Version
+- 1.0 20.03.2019 14:56<br>
+  - Anpassungen IPS 5, Abspaltung von Branch _ips_4.4_
