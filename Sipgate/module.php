@@ -25,8 +25,45 @@ class Sipgate extends IPSModule
         if ($user == '' || $password == '') {
             $ok = false;
         }
-        $this->SetStatus($ok ? 102 : 201);
+        $this->SetStatus($ok ? IS_ACTIVE : IS_UNAUTHORIZED);
     }
+
+    public function GetConfigurationForm()
+    {
+        $formElements = [];
+        $formElements[] = ['type' => 'ValidationTextBox', 'name' => 'user', 'caption' => 'User'];
+        $formElements[] = ['type' => 'ValidationTextBox', 'name' => 'password', 'caption' => 'Password'];
+
+        $formActions = [];
+        $formActions[] = ['type' => 'Button', 'label' => 'Test account', 'onClick' => 'Sipgate_TestAccount($id);'];
+        $formActions[] = ['type' => 'Label', 'label' => ''];
+        $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'telno', 'caption' => 'telno'];
+        $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'msg', 'caption' => 'msg'];
+        $formActions[] = ['type' => 'Button', 'label' => 'Test SMS', 'onClick' => 'Sipgate_TestSMS($id, $telno, $msg);'];
+        $formActions[] = ['type' => 'Button', 'label' => 'Show Call-History', 'onClick' => 'Sipgate_ShowHistory($id);'];
+        $formActions[] = ['type' => 'Button', 'label' => 'Show current Calls', 'onClick' => 'Sipgate_ShowCallList($id);'];
+        $formActions[] = ['type' => 'Button', 'label' => 'Show current Forwardings', 'onClick' => 'Sipgate_ShowForwardings($id);'];
+        $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'destination', 'caption' => 'destination'];
+        $formActions[] = ['type' => 'NumberSpinner', 'name' => 'timeout', 'caption' => 'timeout'];
+        $formActions[] = ['type' => 'CheckBox', 'name' => 'active', 'caption' => 'active'];
+        $formActions[] = ['type' => 'Button', 'label' => 'Test Forwarding', 'onClick' => 'Sipgate_TestForwarding($id, $destination, $timeout, $active);'];
+        $formActions[] = ['type' => 'Label', 'label' => '____________________________________________________________________________________________________'];
+        $formActions[] = ['type' => 'Button', 'label' => 'Module description', 'onClick' => 'echo \'https://github.com/demel42/IPSymconSipgate/blob/master/README.md\';'];
+
+        $formStatus = [];
+        $formStatus[] = ['code' => IS_CREATING, 'icon' => 'inactive', 'caption' => 'Instance getting created'];
+        $formStatus[] = ['code' => IS_ACTIVE, 'icon' => 'active', 'caption' => 'Instance is active'];
+        $formStatus[] = ['code' => IS_DELETING, 'icon' => 'inactive', 'caption' => 'Instance is deleted'];
+        $formStatus[] = ['code' => IS_INACTIVE, 'icon' => 'inactive', 'caption' => 'Instance is inactive'];
+        $formStatus[] = ['code' => IS_NOTCREATED, 'icon' => 'inactive', 'caption' => 'Instance is not created'];
+
+        $formStatus[] = ['code' => IS_UNAUTHORIZED, 'icon' => 'error', 'caption' => 'Instance is inactive (unauthorized)'];
+        $formStatus[] = ['code' => IS_SERVERERROR, 'icon' => 'error', 'caption' => 'Instance is inactive (server error)'];
+        $formStatus[] = ['code' => IS_HTTPERROR, 'icon' => 'error', 'caption' => 'Instance is inactive (http error)'];
+        $formStatus[] = ['code' => IS_INVALIDDATA, 'icon' => 'error', 'caption' => 'Instance is inactive (invalid data)'];
+
+        return json_encode(['elements' => $formElements, 'actions' => $formActions, 'status' => $formStatus]);
+	}
 
     public function TestAccount()
     {
@@ -292,7 +329,7 @@ class Sipgate extends IPSModule
         $cdata = $this->do_HttpRequest($cmd_url, $header, $postdata, $isJson, $customrequest);
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
 
-        $this->SetStatus(102);
+        $this->SetStatus(IS_ACTIVE);
         return $cdata;
     }
 
@@ -347,31 +384,31 @@ class Sipgate extends IPSModule
         $err = '';
         $data = '';
         if ($cerrno) {
-            $statuscode = 204;
+            $statuscode = IS_HTTPERROR;
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
         } elseif ($httpcode != 200) {
             if ($httpcode == 401) {
-                $statuscode = 201;
+                $statuscode = IS_UNAUTHORIZED;
                 $err = "got http-code $httpcode (unauthorized)";
             } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = 202;
+                $statuscode = IS_SERVERERROR;
                 $err = "got http-code $httpcode (server error)";
             } elseif ($httpcode == 204) {
                 // 204 = No Content	= Die Anfrage wurde erfolgreich durchgeführt, die Antwort enthält jedoch bewusst keine Daten.
                 // kommt zB bei senden von SMS
                 $data = json_encode(['status' => 'ok']);
             } else {
-                $statuscode = 203;
+                $statuscode = IS_HTTPERROR;
                 $err = "got http-code $httpcode";
             }
         } elseif ($cdata == '') {
-            $statuscode = 204;
+            $statuscode = IS_INVALIDDATA;
             $err = 'no data';
         } else {
             if ($isJson) {
                 $jdata = json_decode($cdata, true);
                 if ($jdata == '') {
-                    $statuscode = 204;
+                    $statuscode = IS_INVALIDDATA;
                     $err = 'malformed response';
                 } else {
                     $data = $cdata;
@@ -395,7 +432,7 @@ class Sipgate extends IPSModule
         $cdata = $this->do_ApiCall('/calls/' . $callId, '', true, 'DELETE');
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
 
-        $this->SetStatus(102);
+        $this->SetStatus(IS_ACTIVE);
         return $cdata;
     }
 
@@ -432,7 +469,7 @@ class Sipgate extends IPSModule
         $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', '', true, 'GET');
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
 
-        $this->SetStatus(102);
+        $this->SetStatus(IS_ACTIVE);
         return $cdata;
     }
 
