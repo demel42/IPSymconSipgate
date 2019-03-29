@@ -1,7 +1,7 @@
 # IPSymconSipgate
 
 [![IPS-Version](https://img.shields.io/badge/Symcon_Version-5.0+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-![Module-Version](https://img.shields.io/badge/Modul_Version-1.0-blue.svg)
+![Module-Version](https://img.shields.io/badge/Modul_Version-1.1-blue.svg)
 ![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![StyleCI](https://github.styleci.io/repos/135898954/shield?branch=master)](https://github.styleci.io/repos/135898954)
@@ -104,6 +104,9 @@ GUIDs
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
 
 ## 7. Versions-Historie
+
+- 1.1 @ 29.03.2019 16:19<br>
+  - SetValue() abgesichert
 
 - 1.0 @ 20.03.2019 14:56<br>
   - Anpassungen IPS 5, Abspaltung von Branch _ips_4.4_
