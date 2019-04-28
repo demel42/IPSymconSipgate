@@ -1,7 +1,7 @@
 # IPSymconSipgate
 
 [![IPS-Version](https://img.shields.io/badge/Symcon_Version-5.0+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-![Module-Version](https://img.shields.io/badge/Modul_Version-1.1-blue.svg)
+![Module-Version](https://img.shields.io/badge/Modul_Version-1.2-blue.svg)
 ![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![StyleCI](https://github.styleci.io/repos/135898954/shield?branch=master)](https://github.styleci.io/repos/135898954)
@@ -20,21 +20,13 @@
 
 ## 1. Funktionsumfang
 
+Dieses Modul benutzt die Sipgate-API V2 und stellt Funktionen für die folgende Punkte zur Verfügung:
  - Kontostand
-
  - Anrufhistorie abrufen
- 
  - SMS verschicken<br>
- Hierzu muss im sipgate die Funktion _SMS versenden_ aktivert werden. Die Funktion an sich ist (zur Zeit) kostenlos, es wird pro SMS bezahlt.<br>
-Besonderheit: wird die SMS an ein Festnetzanschluss geschickt, ruft sipgate diese Nummer an und liest den Text vor.
-
+Hierzu muss im sipgate die Funktion _SMS versenden_ aktivert werden. Die Funktion an sich ist (zur Zeit) kostenlos, es wird pro SMS bezahlt.<br>
+Besonderheit: wird die SMS an ein Festnetzanschluss geschickt, ruft Sipgate diese Nummer an und liest den Text vor.
  - Status der Umleitung abrufen und einstellen
-
- - Status von DND abrufen und einstellen
-
- - Status der Benachrichtungen abrufen und einstellen
-
- - Anruf einleiten
 
 ## 2. Voraussetzungen
 
@@ -68,31 +60,43 @@ In dem Konfigurationsdialog die Zugangsdaten des Accounts eintragen.
 
 ### zentrale Funktion
 
-`boolean Sipgate_SendSMS(integer $InstanzID, string Telno, string Message)`
-<br>
+`boolean Sipgate_SendSMS(integer $InstanzID, string Telno, string Message)`<br>
 Sendet eine SMS an die angegebene nUmmer. Die Länge der SMS wird ggfs auf 160 Zeichen verkürzt.
 Der Rückgabewert ist __*true*__, wenn die SMS an Sipgate abgesendet werden konnte, eine Information, ob die SMS den Empfänger erreicht hat, gibt es (leider) nicht.
 
-`boolean Sipgate_GetHistory(integer $InstanzID)`
-<br>
-liefert eine JSON-Struktur zurück mit den Daten der Anruf-Historie, Beispiel siehe Funktion _TestHistory()_ in _modul.php_.
+`string Sipgate_GetHistory(integer $InstanzID)`<br>
+liefert einen String mit einer kodierte JSON-Struktur zurück mit den Daten der Anruf-Historie.<br>
+Beispiel siehe Funktion _TestHistory()_ in _modul.php_.
+
+`string Sipgate_GetCallList(integer $InstanzID)`<br>
+liefert einen String mit einer kodierte JSON-Struktur zurück mit der Gesprächsliste.<br>
+Beispiel siehe Funktion _ShowCallList()_ in _modul.php_.
+
+`string Sipgate_GetForwardings(integer $InstanzID, string $deviceId)`<br>
+liefert einen String mit einer kodierte JSON-Struktur mit den aktuellen Umleitungen des angegebenen Telefons.<br>
+Beispiel siehe Funktion _ShowForwardings()_ in _modul.php_.
+
+`boolean Sipgate_SetForwarding(string $destination, int $timeout, bool $active, string $deviceId)`<br>
+setzt/löscht die Umleitung des angegebenen Telefons.
+Beispiel siehe Funktion _TestForwarding()_ in _modul.php_.
+
 
 ## 5. Konfiguration:
 
 ### Variablen
 
-| Eigenschaft               | Typ      | Standardwert | Beschreibung |
-| :-----------------------: | :-----:  | :----------: | :-------------------------------------------: |
-| Benutzer                  | string   |              | sipgate-Benutzer |
-| Passwort                  | string   |              | Passwort des Benutzers |
+| Eigenschaft | Typ    | Standardwert | Beschreibung |
+| :---------- | :----- | :----------- | :----------- |
+| Benutzer    | string |              | sipgate-Benutzer |
+| Passwort    | string |              | Passwort des Benutzers |
 
 ### Schaltflächen
 
-| Bezeichnung                  | Beschreibung |
-| :--------------------------: | :-------------------------------------------------: |
-| Zugangsdaten überprüfen      | Testet die Zugangsdaten und gibt Accout-Details aus |
-| SMS testen                   | SMS-Funktion testen |
-| Anruf-Historie abrufen       | Anruf-Historie abrufen und ausgeben |
+| Bezeichnung             | Beschreibung |
+| :---------------------- | :----------- |
+| Zugangsdaten überprüfen | Testet die Zugangsdaten und gibt Accout-Details aus |
+| SMS testen              | SMS-Funktion testen |
+| Anruf-Historie abrufen  | Anruf-Historie abrufen und ausgeben |
 
 ## 6. Anhang
 
@@ -104,6 +108,9 @@ GUIDs
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
 
 ## 7. Versions-Historie
+
+- 1.2 @ 28.04.2019 14:24<br>
+  - Dokumentation überarbeitet
 
 - 1.1 @ 29.03.2019 16:19<br>
   - SetValue() abgesichert
