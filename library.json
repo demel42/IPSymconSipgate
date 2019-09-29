@@ -1,12 +1,12 @@
 {
 	"id": "{A110B4EA-FE52-4351-8922-B2B751179BAD}",
 	"author": "Ch. Damsky",
-	"name": "IPSymconSipgate",
+	"name": "Sipgate-Client",
 	"url": "https://github.com/demel42/IPSymconSipgate",
 	"compatibility": {
 		"version": "4.4"
 	},
-	"version": "1.2",
+	"version": "1.3",
 	"build": 0,
-	"date": 1556454287
+	"date": 1569752421
 }
