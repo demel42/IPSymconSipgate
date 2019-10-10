@@ -4,7 +4,6 @@
 ![Module-Version](https://img.shields.io/badge/Modul_Version-1.3-blue.svg)
 ![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![StyleCI](https://github.styleci.io/repos/135898954/shield?branch=master)](https://github.styleci.io/repos/135898954)
 
 ## Dokumentation
 
@@ -109,10 +108,12 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
-- 1.3 @ 29.09.2019 12:20<br>
+- 1.3 @ 10.10.2019 17:27<br>
   - Anpassungen an IPS 5.2
     - IPS_SetVariableProfileValues(), IPS_SetVariableProfileDigits() nur bei INTEGER, FLOAT
     - Dokumentation-URL in module.json
+  - Umstellung auf strict_types=1
+  - Umstellung von StyleCI auf php-cs-fixer 
 
 - 1.2 @ 28.04.2019 14:24<br>
   - Dokumentation überarbeitet

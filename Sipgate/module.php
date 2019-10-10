@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/../libs/common.php';  // globale Funktionen
 
 class Sipgate extends IPSModule
@@ -152,10 +154,10 @@ class Sipgate extends IPSModule
     public function SendSMS(string $Telno, string $Msg)
     {
         $postdata = [
-                'smsId'     => 's0',
-                'recipient' => $Telno,
-                'message'   => substr($Msg, 0, 160)
-            ];
+            'smsId'     => 's0',
+            'recipient' => $Telno,
+            'message'   => substr($Msg, 0, 160)
+        ];
         $cdata = $this->do_ApiCall('/sessions/sms', $postdata, true);
         if ($cdata == '') {
             return false;
@@ -283,14 +285,14 @@ class Sipgate extends IPSModule
 
         if ($token_expiration < time()) {
             $postdata = [
-                    'username' => $user,
-                    'password' => $password
-                ];
+                'username' => $user,
+                'password' => $password
+            ];
 
             $header = [
-                    'Accept: application/json',
-                    'Content-Type: application/x-www-form-urlencoded'
-                ];
+                'Accept: application/json',
+                'Content-Type: application/x-www-form-urlencoded'
+            ];
 
             $ctoken = $this->do_HttpRequest('/authorization/token', $header, $postdata, true);
             $this->SendDebug(__FUNCTION__, 'ctoken=' . print_r($ctoken, true), 0);
@@ -301,9 +303,9 @@ class Sipgate extends IPSModule
             $token = $jtoken['token'];
 
             $jtoken = [
-                    'token'            => $token,
-                    'token_expiration' => time() + 300
-                ];
+                'token'            => $token,
+                'token_expiration' => time() + 300
+            ];
             $this->SetBuffer('Token', json_encode($jtoken));
         }
 
@@ -443,10 +445,10 @@ class Sipgate extends IPSModule
         $wav_url = 'https://static.sipgate.com/examples/wav/example.wav';
 
         $postdata = [
-                'caller'   => 'e1',
-                'callee'   => '+491718883302',
-                'callerId' => '+4923274178948'
-            ];
+            'caller'   => 'e1',
+            'callee'   => '+491718883302',
+            'callerId' => '+4923274178948'
+        ];
 
         $cdata = $this->do_ApiCall('/sessions/calls', $postdata, true);
         if ($cdata == '') {
@@ -463,7 +465,7 @@ class Sipgate extends IPSModule
                 'url'   => $wav_url
             ];
         $cdata = $this->do_ApiCall('/calls/' . $sessionId . '/announcements', $postdata, true);
-        */
+         */
     }
 
     public function GetForwardings(string $deviceId = 'p0')
@@ -526,13 +528,13 @@ class Sipgate extends IPSModule
     {
         $postdata = [
             'forwardings' => [
-                        [
-                            'destination' => $destination,
-                            'timeout'     => $timeout,
-                            'active'      => $active
-                        ]
+                [
+                    'destination' => $destination,
+                    'timeout'     => $timeout,
+                    'active'      => $active
                 ]
-            ];
+            ]
+        ];
         $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', $postdata, true, 'PUT');
         if ($cdata == '') {
             return false;
