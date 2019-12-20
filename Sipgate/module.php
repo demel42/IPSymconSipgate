@@ -37,21 +37,21 @@ class Sipgate extends IPSModule
         $formElements[] = ['type' => 'ValidationTextBox', 'name' => 'password', 'caption' => 'Password'];
 
         $formActions = [];
-        $formActions[] = ['type' => 'Button', 'label' => 'Test account', 'onClick' => 'Sipgate_TestAccount($id);'];
-        $formActions[] = ['type' => 'Label', 'label' => ''];
+        $formActions[] = ['type' => 'Button', 'caption' => 'Test account', 'onClick' => 'Sipgate_TestAccount($id);'];
+        $formActions[] = ['type' => 'Label', 'caption' => ''];
         $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'telno', 'caption' => 'telno'];
         $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'msg', 'caption' => 'msg'];
-        $formActions[] = ['type' => 'Button', 'label' => 'Test SMS', 'onClick' => 'Sipgate_TestSMS($id, $telno, $msg);'];
-        $formActions[] = ['type' => 'Button', 'label' => 'Show Call-History', 'onClick' => 'Sipgate_ShowHistory($id);'];
-        $formActions[] = ['type' => 'Button', 'label' => 'Show current Calls', 'onClick' => 'Sipgate_ShowCallList($id);'];
-        $formActions[] = ['type' => 'Button', 'label' => 'Show current Forwardings', 'onClick' => 'Sipgate_ShowForwardings($id);'];
+        $formActions[] = ['type' => 'Button', 'caption' => 'Test SMS', 'onClick' => 'Sipgate_TestSMS($id, $telno, $msg);'];
+        $formActions[] = ['type' => 'Button', 'caption' => 'Show Call-History', 'onClick' => 'Sipgate_ShowHistory($id);'];
+        $formActions[] = ['type' => 'Button', 'caption' => 'Show current Calls', 'onClick' => 'Sipgate_ShowCallList($id);'];
+        $formActions[] = ['type' => 'Button', 'caption' => 'Show current Forwardings', 'onClick' => 'Sipgate_ShowForwardings($id);'];
         $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'destination', 'caption' => 'destination'];
         $formActions[] = ['type' => 'NumberSpinner', 'name' => 'timeout', 'caption' => 'timeout'];
         $formActions[] = ['type' => 'CheckBox', 'name' => 'active', 'caption' => 'active'];
-        $formActions[] = ['type' => 'Button', 'label' => 'Test Forwarding', 'onClick' => 'Sipgate_TestForwarding($id, $destination, $timeout, $active);'];
+        $formActions[] = ['type' => 'Button', 'caption' => 'Test Forwarding', 'onClick' => 'Sipgate_TestForwarding($id, $destination, $timeout, $active);'];
         if (IPS_GetKernelVersion() < 5.2) {
-            $formActions[] = ['type' => 'Label', 'label' => '____________________________________________________________________________________________________'];
-            $formActions[] = ['type' => 'Button', 'label' => 'Module description', 'onClick' => 'echo \'https://github.com/demel42/IPSymconSipgate/blob/master/README.md\';'];
+            $formActions[] = ['type' => 'Label', 'caption' => '____________________________________________________________________________________________________'];
+            $formActions[] = ['type' => 'Button', 'caption' => 'Module description', 'onClick' => 'echo \'https://github.com/demel42/IPSymconSipgate/blob/master/README.md\';'];
         }
 
         $formStatus = [];
