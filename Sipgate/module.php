@@ -49,10 +49,6 @@ class Sipgate extends IPSModule
         $formActions[] = ['type' => 'NumberSpinner', 'name' => 'timeout', 'caption' => 'timeout'];
         $formActions[] = ['type' => 'CheckBox', 'name' => 'active', 'caption' => 'active'];
         $formActions[] = ['type' => 'Button', 'caption' => 'Test Forwarding', 'onClick' => 'Sipgate_TestForwarding($id, $destination, $timeout, $active);'];
-        if (IPS_GetKernelVersion() < 5.2) {
-            $formActions[] = ['type' => 'Label', 'caption' => '____________________________________________________________________________________________________'];
-            $formActions[] = ['type' => 'Button', 'caption' => 'Module description', 'onClick' => 'echo \'https://github.com/demel42/IPSymconSipgate/blob/master/README.md\';'];
-        }
 
         $formStatus = [];
         $formStatus[] = ['code' => IS_CREATING, 'icon' => 'inactive', 'caption' => 'Instance getting created'];
