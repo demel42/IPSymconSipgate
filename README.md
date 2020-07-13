@@ -107,6 +107,9 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 1.5 @ 13.07.2020 14:56
+  - LICENSE.md hinzugefügt
+
 - 1.4 @ 30.12.2019 10:56
   - Anpassungen an IPS 5.3
     - Formular-Elemente: 'label' in 'caption' geändert
