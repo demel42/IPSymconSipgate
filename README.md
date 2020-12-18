@@ -107,7 +107,8 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
-- 1.5 @ 13.07.2020 14:56
+- 1.5 @ 18.12.2020 14:57 (beta)
+  - PHP_CS_FIXER_IGNORE_ENV=1 in github/workflows/style.yml eingefügt
   - LICENSE.md hinzugefügt
 
 - 1.4 @ 30.12.2019 10:56
