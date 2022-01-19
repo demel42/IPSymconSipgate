@@ -34,7 +34,7 @@ class Sipgate extends IPSModule
     {
         $formElements = [];
         $formElements[] = ['type' => 'ValidationTextBox', 'name' => 'user', 'caption' => 'User'];
-        $formElements[] = ['type' => 'ValidationTextBox', 'name' => 'password', 'caption' => 'Password'];
+        $formElements[] = ['type' => 'PasswordTextBox', 'name' => 'password', 'caption' => 'Password'];
 
         $formActions = [];
         $formActions[] = ['type' => 'Button', 'caption' => 'Test account', 'onClick' => 'Sipgate_TestAccount($id);'];
