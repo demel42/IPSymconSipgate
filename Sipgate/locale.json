@@ -1,10 +1,32 @@
 {
 	"translations": {
 		"de": {
-			"User": "Benutzer",
-			"Password": "Passwort",
+			"Disable instance": "Instanz deaktivieren",
 
+			"Status: Symcon Connect is OK!": "Status: Symcon Connect ist OK!",
+            "Error: Symcon Connect is not active!": "Fehler: Symcon Connect ist nicht aktiv!",
+
+			"Login at Sipgate": "bei Sipgate anmelden",
 			"Test account": "Zugangsdaten überprüfen",
+
+			"Sipgate Login": "Anmeldung bei Sipgate",
+
+			"Push \"Login at Sipgate\" in the action part of this configuration form.":
+                "\"Anmelden bei Sipgate\" in dem Aktionsbereich dieses Konfigurationsformulares drücken.",
+            "At the webpage from Sipgate log in with your Sipgate username and password.":
+                "Auf der Webseite von Sipgate mit dem Sipgate Benutzernamen und Passwort anmelden.",
+            "If the connection to IP-Symcon was successfull you get the message: \"Sipgate successfully connected!\". Close the browser window.":
+                "Wenn die Verbindung zu IP-Symcon erfolgreich war erscheint die Meldung: \"Sipgate successfully connected!\". Das Browserfenster kann nun geschlossen werden.",
+            "Return to this configuration form.":
+                "Danach zu diesem Konfigurationsformular zurückkehren und fortfahren.",
+
+			"Call settings": "Abrufeinstellungen",
+			"Update data every X hour": "Aktualisiere Daten alle X Stunden",
+            "Hours": "Stunden",
+
+			"Update data": "Aktualisiere Daten",
+
+			"Test area": "Test-Bereich",
 
 			"telno": "Telefonnummer",
 			"msg": "Nachricht",
@@ -21,6 +43,7 @@
 			"alias": "Bezeichnung",
 			"call-history": "Anruf-Historie",
 			"company": "Firma",
+			"credit": "Guthaben",
 			"current calls": "aktuelle Anrufe",
 			"current forwardings": "aktuelle Umleitungen",
 			"destination": "Ziel",
@@ -57,10 +80,14 @@
 			"Instance is inactive": "Instanz ist inaktiv",
 			"Instance is not created": "Instanz wurde nicht erzeugt",
 
-			"Instance is inactive (unauthorized)": "Instanz ist inaktiv (Authorisierung fehlerhaft)",
-			"Instance is inactive (server error)": "Instanz ist inaktiv (Serverfehler)",
-			"Instance is inactive (http error)": "Instanz ist inaktiv (HTTP-Fehler)",
-			"Instance is inactive (invalid data)": "Instanz ist inaktiv (ungültige Daten)"
+            "Instance is inactive (no Symcon-Connect)": "Instanz ist inaktiv (kein Symcon-Connect)",
+            "Instance is inactive (not logged in)": "Instanz ist inaktiv (nicht angemeldet)",
+            "Instance is inactive (invalid config)": "Instanz ist inaktiv (ungültige Konfiguration)",
+            "Instance is inactive (unauthorized)": "Instanz ist inaktiv (Authorisierung fehlerhaft)",
+            "Instance is inactive (server error)": "Instanz ist inaktiv (Serverfehler)",
+            "Instance is inactive (http error)": "Instanz ist inaktiv (HTTP-Fehler)",
+			"Instance is inactive (no data)": "Instanz ist inaktiv (keine Daten)",
+            "Instance is inactive (invalid data)": "Instanz ist inaktiv (ungültige Daten)"
 		}
 	}
 }

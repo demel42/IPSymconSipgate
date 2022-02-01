@@ -3,66 +3,518 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/common.php';  // globale Funktionen
+require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
 
 class Sipgate extends IPSModule
 {
-    use SipgateCommon;
+    use SipgateCommonLib;
+    use SipgateLocalLib;
+
+    private $oauthIdentifer = 'sipgate';
+
+    public function InstallVarProfiles(bool $reInstall = false)
+    {
+        $this->CreateVarProfile('Sipgate.Currency', VARIABLETYPE_FLOAT, ' €', 0, 0, 0, 2, 'Euro', '', $reInstall);
+    }
 
     public function Create()
     {
         parent::Create();
 
-        $this->RegisterPropertyString('user', '');
-        $this->RegisterPropertyString('password', '');
+        $this->RegisterPropertyBoolean('module_disable', false);
+
+        $this->RegisterPropertyInteger('UpdateDataInterval', '24');
+
+        $this->RegisterAttributeString('ApiRefreshToken', '');
+
+        $this->InstallVarProfiles(false);
+
+        $this->SetBuffer('ApiAccessToken', '');
+
+        $this->RegisterTimer('UpdateData', 0, 'Sipgate_UpdateData(' . $this->InstanceID . ');');
+        $this->RegisterMessage(0, IPS_KERNELMESSAGE);
+    }
+
+    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+    {
+        parent::MessageSink($TimeStamp, $SenderID, $Message, $Data);
+
+        if ($Message == IPS_KERNELMESSAGE && $Data[0] == KR_READY) {
+            $this->RegisterOAuth($this->oauthIdentifer);
+        }
+    }
+
+    private function CheckConfiguration()
+    {
+        $s = '';
+        $r = [];
+
+        if ($r != []) {
+            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
+            foreach ($r as $p) {
+                $s .= '- ' . $p . PHP_EOL;
+            }
+        }
+
+        return $s;
     }
 
     public function ApplyChanges()
     {
         parent::ApplyChanges();
 
-        $user = $this->ReadPropertyString('user');
-        $password = $this->ReadPropertyString('password');
+        $vpos = 0;
+        $this->MaintainVariable('Credit', $this->Translate('credit'), VARIABLETYPE_FLOAT, 'Sipgate.Currency', $vpos++, true);
 
-        $ok = true;
-        if ($user == '' || $password == '') {
-            $ok = false;
+        $refs = $this->GetReferenceList();
+        foreach ($refs as $ref) {
+            $this->UnregisterReference($ref);
         }
-        $this->SetStatus($ok ? IS_ACTIVE : IS_UNAUTHORIZED);
+
+        $module_disable = $this->ReadPropertyBoolean('module_disable');
+        if ($module_disable) {
+            $this->SetStatus(IS_INACTIVE);
+            return;
+        }
+
+        if ($this->CheckConfiguration() != false) {
+            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            return;
+        }
+
+        if ($this->GetConnectUrl() == false) {
+            $this->SetStatus(self::$IS_NOSYMCONCONNECT);
+            return;
+        }
+
+        if (IPS_GetKernelRunlevel() == KR_READY) {
+            $this->RegisterOAuth($this->oauthIdentifer);
+        }
+
+        $refresh_token = $this->ReadAttributeString('ApiRefreshToken');
+        if ($refresh_token == '') {
+            $this->SetStatus(self::$IS_NOLOGIN);
+            return;
+        }
+
+        $this->SetStatus(IS_ACTIVE);
     }
 
-    public function GetConfigurationForm()
+    protected function GetFormElements()
     {
         $formElements = [];
-        $formElements[] = ['type' => 'ValidationTextBox', 'name' => 'user', 'caption' => 'User'];
-        $formElements[] = ['type' => 'ValidationTextBox', 'name' => 'password', 'caption' => 'Password'];
 
+        $formElements[] = [
+            'type'    => 'Label',
+            'caption' => 'Sipgate Basic',
+        ];
+
+        $instID = IPS_GetInstanceListByModuleID('{9486D575-BE8C-4ED8-B5B5-20930E26DE6F}')[0];
+        if (IPS_GetInstance($instID)['InstanceStatus'] != IS_ACTIVE) {
+            $msg = 'Error: Symcon Connect is not active!';
+        } else {
+            $msg = 'Status: Symcon Connect is OK!';
+        }
+        $formElements[] = [
+            'type'    => 'Label',
+            'caption' => $msg
+        ];
+
+        $s = $this->CheckConfiguration();
+        if ($s != '') {
+            $formElements[] = [
+                'type'    => 'Label',
+                'caption' => $s
+            ];
+            $formElements[] = [
+                'type'    => 'Label',
+            ];
+        }
+
+        $formElements[] = [
+            'type'    => 'CheckBox',
+            'name'    => 'module_disable',
+            'caption' => 'Disable instance'
+        ];
+
+        $formElements[] = [
+            'type'    => 'ExpansionPanel',
+            'caption' => 'Sipgate Login',
+            'items'   => [
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Push "Login at Sipgate" in the action part of this configuration form.'
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => 'At the webpage from Sipgate log in with your Sipgate username and password.'
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => 'If the connection to IP-Symcon was successfull you get the message: "Sipgate successfully connected!". Close the browser window.'
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Return to this configuration form.'
+                ],
+            ],
+        ];
+
+        $formElements[] = [
+            'type'    => 'ExpansionPanel',
+            'caption' => 'Call settings',
+            'items'   => [
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Update data every X hour'
+                ],
+                [
+                    'type'    => 'NumberSpinner',
+                    'name'    => 'UpdateDataInterval',
+                    'caption' => 'Hours'
+                ],
+            ],
+        ];
+
+        return $formElements;
+    }
+
+    private function GetFormActions()
+    {
         $formActions = [];
-        $formActions[] = ['type' => 'Button', 'caption' => 'Test account', 'onClick' => 'Sipgate_TestAccount($id);'];
-        $formActions[] = ['type' => 'Label', 'caption' => ''];
-        $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'telno', 'caption' => 'telno'];
-        $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'msg', 'caption' => 'msg'];
-        $formActions[] = ['type' => 'Button', 'caption' => 'Test SMS', 'onClick' => 'Sipgate_TestSMS($id, $telno, $msg);'];
-        $formActions[] = ['type' => 'Button', 'caption' => 'Show Call-History', 'onClick' => 'Sipgate_ShowHistory($id);'];
-        $formActions[] = ['type' => 'Button', 'caption' => 'Show current Calls', 'onClick' => 'Sipgate_ShowCallList($id);'];
-        $formActions[] = ['type' => 'Button', 'caption' => 'Show current Forwardings', 'onClick' => 'Sipgate_ShowForwardings($id);'];
-        $formActions[] = ['type' => 'ValidationTextBox', 'name' => 'destination', 'caption' => 'destination'];
-        $formActions[] = ['type' => 'NumberSpinner', 'name' => 'timeout', 'caption' => 'timeout'];
-        $formActions[] = ['type' => 'CheckBox', 'name' => 'active', 'caption' => 'active'];
-        $formActions[] = ['type' => 'Button', 'caption' => 'Test Forwarding', 'onClick' => 'Sipgate_TestForwarding($id, $destination, $timeout, $active);'];
 
-        $formStatus = [];
-        $formStatus[] = ['code' => IS_CREATING, 'icon' => 'inactive', 'caption' => 'Instance getting created'];
-        $formStatus[] = ['code' => IS_ACTIVE, 'icon' => 'active', 'caption' => 'Instance is active'];
-        $formStatus[] = ['code' => IS_DELETING, 'icon' => 'inactive', 'caption' => 'Instance is deleted'];
-        $formStatus[] = ['code' => IS_INACTIVE, 'icon' => 'inactive', 'caption' => 'Instance is inactive'];
-        $formStatus[] = ['code' => IS_NOTCREATED, 'icon' => 'inactive', 'caption' => 'Instance is not created'];
+        $formActions[] = [
+            'type'    => 'Button',
+            'caption' => 'Update data',
+            'onClick' => 'Sipgate_UpdateData($id);'
+        ];
+        $formActions[] = [
+            'type'    => 'Button',
+            'caption' => 'Test account',
+            'onClick' => 'Sipgate_TestAccount($id);'
+        ];
+        $formActions[] = [
+            'type'    => 'Button',
+            'caption' => 'Login at Sipgate',
+            'onClick' => 'echo Sipgate_Login($id);'
+        ];
 
-        $formStatus[] = ['code' => IS_UNAUTHORIZED, 'icon' => 'error', 'caption' => 'Instance is inactive (unauthorized)'];
-        $formStatus[] = ['code' => IS_SERVERERROR, 'icon' => 'error', 'caption' => 'Instance is inactive (server error)'];
-        $formStatus[] = ['code' => IS_HTTPERROR, 'icon' => 'error', 'caption' => 'Instance is inactive (http error)'];
-        $formStatus[] = ['code' => IS_INVALIDDATA, 'icon' => 'error', 'caption' => 'Instance is inactive (invalid data)'];
+        $formActions[] = [
+            'type'      => 'ExpansionPanel',
+            'caption'   => 'Test area',
+            'expanded ' => false,
+            'items'     => [
+                [
+                    'type'    => 'TestCenter',
+                ],
+                [
+                    'type'    => 'Label',
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => ''
+                ],
+                [
+                    'type'    => 'RowLayout',
+                    'items'   => [
+                        [
+                            'type'    => 'ValidationTextBox',
+                            'name'    => 'telno',
+                            'caption' => 'telno'
+                        ],
+                        [
+                            'type'    => 'ValidationTextBox',
+                            'name'    => 'msg',
+                            'caption' => 'msg'
+                        ],
+                        [
+                            'type'    => 'Button',
+                            'caption' => 'Test SMS',
+                            'onClick' => 'Sipgate_TestSMS($id, $telno, $msg);'
+                        ],
+                    ],
+                ],
+                [
+                    'type'    => 'Button',
+                    'caption' => 'Show Call-History',
+                    'onClick' => 'Sipgate_ShowHistory($id);'
+                ],
+                [
+                    'type'    => 'Button',
+                    'caption' => 'Show current Calls',
+                    'onClick' => 'Sipgate_ShowCallList($id);'
+                ],
+                [
+                    'type'    => 'Button',
+                    'caption' => 'Show current Forwardings',
+                    'onClick' => 'Sipgate_ShowForwardings($id);'
+                ],
+                [
+                    'type'    => 'RowLayout',
+                    'items'   => [
+                        [
+                            'type'    => 'ValidationTextBox',
+                            'name'    => 'destination',
+                            'caption' => 'destination'
+                        ],
+                        [
+                            'type'    => 'NumberSpinner',
+                            'name'    => 'timeout',
+                            'caption' => 'timeout'
+                        ],
+                        [
+                            'type'    => 'CheckBox',
+                            'name'    => 'active',
+                            'caption' => 'active'
+                        ],
+                        [
+                            'type'    => 'Button',
+                            'caption' => 'Test Forwarding',
+                            'onClick' => 'Sipgate_TestForwarding($id, $destination, $timeout, $active);'
+                        ],
+                    ],
+                ],
+            ],
+        ];
 
-        return json_encode(['elements' => $formElements, 'actions' => $formActions, 'status' => $formStatus]);
+        $formActions[] = [
+            'type'    => 'ExpansionPanel',
+            'caption' => 'Information',
+            'items'   => [
+                [
+                    'type'    => 'Label',
+                    'caption' => $this->InstanceInfo($this->InstanceID),
+                ],
+            ],
+        ];
+
+        return $formActions;
+    }
+
+    private function RegisterOAuth($WebOAuth)
+    {
+        $this->SendDebug(__FUNCTION__, 'WebOAuth=' . $WebOAuth, 0);
+        $ids = IPS_GetInstanceListByModuleID('{F99BF07D-CECA-438B-A497-E4B55F139D37}');
+        if (count($ids) > 0) {
+            $clientIDs = json_decode(IPS_GetProperty($ids[0], 'ClientIDs'), true);
+            $found = false;
+            foreach ($clientIDs as $index => $clientID) {
+                if ($clientID['ClientID'] == $WebOAuth) {
+                    if ($clientID['TargetID'] == $this->InstanceID) {
+                        return;
+                    }
+                    $clientIDs[$index]['TargetID'] = $this->InstanceID;
+                    $found = true;
+                }
+            }
+            if (!$found) {
+                $clientIDs[] = ['ClientID' => $WebOAuth, 'TargetID' => $this->InstanceID];
+            }
+            IPS_SetProperty($ids[0], 'ClientIDs', json_encode($clientIDs));
+            IPS_ApplyChanges($ids[0]);
+        }
+    }
+
+    public function Login()
+    {
+        $url = 'https://oauth.ipmagic.de/authorize/' . $this->oauthIdentifer . '?username=' . urlencode(IPS_GetLicensee());
+        $this->SendDebug(__FUNCTION__, 'url=' . $url, 0);
+        return $url;
+    }
+
+    protected function ProcessOAuthData()
+    {
+        if (!isset($_GET['code'])) {
+            $this->SendDebug(__FUNCTION__, 'code missing, _GET=' . print_r($_GET, true), 0);
+            $this->WriteAttributeString('ApiRefreshToken', '');
+            $this->SetBuffer('ApiAccessToken', '');
+            $this->SetStatus(self::$IS_NOLOGIN);
+            return;
+        }
+        $refresh_token = $this->GetApiRefreshToken($_GET['code']);
+        $this->SendDebug(__FUNCTION__, 'refresh_token=' . $refresh_token, 0);
+        $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
+        if ($this->GetStatus() == self::$IS_NOLOGIN) {
+            $this->SetStatus(IS_ACTIVE);
+        }
+    }
+
+    protected function Call4ApiAccessToken($content)
+    {
+        $url = 'https://oauth.ipmagic.de/access_token/' . $this->oauthIdentifer;
+        $this->SendDebug(__FUNCTION__, 'url=' . $url, 0);
+        $this->SendDebug(__FUNCTION__, '    content=' . print_r($content, true), 0);
+
+        $statuscode = 0;
+        $err = '';
+        $jdata = false;
+
+        $time_start = microtime(true);
+        $options = [
+            'http' => [
+                'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'content' => http_build_query($content)
+            ]
+        ];
+        $context = stream_context_create($options);
+        $cdata = @file_get_contents($url, false, $context);
+        $duration = round(microtime(true) - $time_start, 2);
+        $httpcode = 0;
+        if ($cdata == false) {
+            $this->LogMessage('file_get_contents() failed: url=' . $url . ', context=' . print_r($context, true), KL_WARNING);
+            $this->SendDebug(__FUNCTION__, 'file_get_contents() failed: url=' . $url . ', context=' . print_r($context, true), 0);
+        } elseif (isset($http_response_header[0]) && preg_match('/HTTP\/[0-9\.]+\s+([0-9]*)/', $http_response_header[0], $r)) {
+            $httpcode = $r[1];
+        } else {
+            $this->LogMessage('missing http_response_header, cdata=' . $cdata, KL_WARNING);
+            $this->SendDebug(__FUNCTION__, 'missing http_response_header, cdata=' . $cdata, 0);
+        }
+        $this->SendDebug(__FUNCTION__, ' => httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, '    cdata=' . $cdata, 0);
+
+        if ($httpcode != 200) {
+            if ($httpcode == 401) {
+                $statuscode = self::$IS_UNAUTHORIZED;
+                $err = 'got http-code ' . $httpcode . ' (unauthorized)';
+            } elseif ($httpcode == 409) {
+                $data = $cdata;
+            } elseif ($httpcode >= 500 && $httpcode <= 599) {
+                $statuscode = self::$IS_SERVERERROR;
+                $err = 'got http-code ' . $httpcode . ' (server error)';
+            } else {
+                $statuscode = self::$IS_HTTPERROR;
+                $err = 'got http-code ' . $httpcode;
+            }
+        } elseif ($cdata == '') {
+            $statuscode = self::$IS_NODATA;
+            $err = 'no data';
+        } else {
+            $jdata = json_decode($cdata, true);
+            if ($jdata == '') {
+                $statuscode = self::$IS_INVALIDDATA;
+                $err = 'malformed response';
+            } else {
+                if (!isset($jdata['refresh_token'])) {
+                    $statuscode = self::$IS_INVALIDDATA;
+                    $err = 'malformed response';
+                }
+            }
+        }
+        if ($statuscode) {
+            $this->SendDebug(__FUNCTION__, '    statuscode=' . $statuscode . ', err=' . $err, 0);
+            $this->SetStatus($statuscode);
+            return false;
+        }
+        return $jdata;
+    }
+
+    private function GetApiAccessToken($access_token = '', $expiration = 0)
+    {
+        if ($access_token == '' && $expiration == 0) {
+            $data = $this->GetBuffer('ApiAccessToken');
+            if ($data != '') {
+                $jtoken = json_decode($data, true);
+                $access_token = isset($jtoken['access_token']) ? $jtoken['access_token'] : '';
+                $expiration = isset($jtoken['expiration']) ? $jtoken['expiration'] : 0;
+                if ($expiration < time()) {
+                    $this->SendDebug(__FUNCTION__, 'access_token expired', 0);
+                    $access_token = '';
+                }
+                if ($access_token != '') {
+                    $this->SendDebug(__FUNCTION__, 'access_token=' . $access_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
+                    return $access_token;
+                }
+            } else {
+                $this->SendDebug(__FUNCTION__, 'no saved access_token', 0);
+            }
+            $refresh_token = $this->ReadAttributeString('ApiRefreshToken');
+            $this->SendDebug(__FUNCTION__, 'refresh_token=' . print_r($refresh_token, true), 0);
+            if ($refresh_token == '') {
+                $this->SendDebug(__FUNCTION__, 'has no refresh_token', 0);
+                $this->WriteAttributeString('ApiRefreshToken', '');
+                $this->SetBuffer('ApiAccessToken', '');
+                // $this->SetTimerInterval('UpdateData', 0);
+                $this->SetStatus(self::$IS_NOLOGIN);
+                return false;
+            }
+            $jdata = $this->Call4ApiAccessToken(['refresh_token' => $refresh_token]);
+            if ($jdata == false) {
+                $this->SendDebug(__FUNCTION__, 'got no access_token', 0);
+                $this->SetBuffer('ApiAccessToken', '');
+                return false;
+            }
+            $access_token = $jdata['access_token'];
+            $expiration = time() + $jdata['expires_in'];
+            if (isset($jdata['refresh_token'])) {
+                $refresh_token = $jdata['refresh_token'];
+                $this->SendDebug(__FUNCTION__, 'new refresh_token=' . $refresh_token, 0);
+                $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
+            }
+        }
+        $this->SendDebug(__FUNCTION__, 'new access_token=' . $access_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
+        $jtoken = [
+            'access_token' => $access_token,
+            'expiration'   => $expiration,
+        ];
+        $this->SetBuffer('ApiAccessToken', json_encode($jtoken));
+        return $access_token;
+    }
+
+    private function GetApiRefreshToken($code)
+    {
+        $this->SendDebug(__FUNCTION__, 'code=' . $code, 0);
+        $jdata = $this->Call4ApiAccessToken(['code' => $code]);
+        if ($jdata == false) {
+            $this->SendDebug(__FUNCTION__, 'got no token', 0);
+            $this->SetBuffer('ApiAccessToken', '');
+            return false;
+        }
+        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+        $access_token = $jdata['access_token'];
+        $expiration = time() + $jdata['expires_in'];
+        $refresh_token = $jdata['refresh_token'];
+        $this->GetApiAccessToken($access_token, $expiration);
+        return $refresh_token;
+    }
+
+    protected function SetUpdateInterval()
+    {
+        $hour = $this->ReadPropertyInteger('UpdateDataInterval');
+        $msec = $hour > 0 ? $hour * 1000 * 60 * 60 : 0;
+        $this->SetTimerInterval('UpdateData', $msec);
+        $this->SendDebug(__FUNCTION__, 'hour=' . $hour . ', msec=' . $msec, 0);
+    }
+
+    public function UpdateData()
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            if ($this->GetStatus() == self::$IS_NOLOGIN) {
+                $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => pause', 0);
+                $this->SetTimerInterval('UpdateData', 0);
+            } else {
+                $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            }
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, '', 0);
+
+        $cdata = $this->do_ApiCall('/balance', '', true, 'GET');
+        if ($cdata == '') {
+            echo $this->Translate('invalid balance-data');
+            return;
+        }
+        $jdata = json_decode($cdata, true);
+        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+
+        $amount = floatval($jdata['amount']) / 10000;
+
+        $this->SetValue('Credit', $amount);
+        $this->SendDebug(__FUNCTION__, 'set variable "Credit" to ' . $amount, 0);
+
+        $this->SetStatus(IS_ACTIVE);
+        $this->SetUpdateInterval();
     }
 
     public function TestAccount()
@@ -76,6 +528,17 @@ class Sipgate extends IPSModule
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
         $company = $jdata['company'];
+
+        $cdata = $this->do_ApiCall('/balance', '', true, 'GET');
+        if ($cdata == '') {
+            echo $this->Translate('invalid balance-data');
+            return;
+        }
+        $jdata = json_decode($cdata, true);
+        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+
+        $amount = floatval($jdata['amount']) / 10000;
+        $currency = $jdata['currency'];
 
         $cdata = $this->do_ApiCall('/authorization/userinfo', '', true, 'GET');
         $jdata = json_decode($cdata, true);
@@ -98,21 +561,25 @@ class Sipgate extends IPSModule
             $lastname = '';
         }
 
-        $msg = $this->translate('valid account-data') . "\n";
+        $msg = $this->translate('valid account-data') . PHP_EOL;
 
         if ($company != '') {
-            $msg = '  ' . $this->Translate('company') . '=' . $company . "\n";
+            $msg = '  ' . $this->Translate('company') . '=' . $company . PHP_EOL;
         }
-        $msg .= '  ' . $this->Translate('user-id') . '=' . $userid . "\n";
-        $msg .= '  ' . $this->Translate('sip-id') . '=' . $masterSipId . "\n";
-        $msg .= '  ' . $this->Translate('name') . '=' . $firstname . ' ' . $lastname . "\n";
+
+        $msg .= '  ' . $this->Translate('credit') . '=' . sprintf('%.02f', $amount) . ' ' . $currency . PHP_EOL;
+        $msg .= PHP_EOL;
+
+        $msg .= '  ' . $this->Translate('user-id') . '=' . $userid . PHP_EOL;
+        $msg .= '  ' . $this->Translate('sip-id') . '=' . $masterSipId . PHP_EOL;
+        $msg .= '  ' . $this->Translate('name') . '=' . $firstname . ' ' . $lastname . PHP_EOL;
 
         $cdata = $this->do_ApiCall('/w0/phonelines', '', true, 'GET');
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-        $msg .= "\n";
-        $msg .= $this->translate('phonelines') . "\n";
+        $msg .= PHP_EOL;
+        $msg .= $this->translate('phonelines') . PHP_EOL;
         $items = $jdata['items'];
         foreach ($items as $item) {
             $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
@@ -123,7 +590,7 @@ class Sipgate extends IPSModule
             $msg .= $this->Translate('phone-id') . '=' . $id;
             $msg .= ', ';
             $msg .= $this->Translate('alias') . '=' . $alias;
-            $msg .= "\n";
+            $msg .= PHP_EOL;
         }
 
         $cdata = $this->do_ApiCall('/w0/devices', '', true, 'GET');
@@ -131,8 +598,8 @@ class Sipgate extends IPSModule
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
         $items = $jdata['items'];
 
-        $msg .= "\n";
-        $msg .= $this->translate('devices') . "\n";
+        $msg .= PHP_EOL;
+        $msg .= $this->translate('devices') . PHP_EOL;
         foreach ($items as $item) {
             $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
             $id = $item['id'];
@@ -142,7 +609,7 @@ class Sipgate extends IPSModule
             $msg .= $this->Translate('device-id') . '=' . $id;
             $msg .= ', ';
             $msg .= $this->Translate('alias') . '=' . $alias;
-            $msg .= "\n";
+            $msg .= PHP_EOL;
         }
         echo $msg;
     }
@@ -224,7 +691,7 @@ class Sipgate extends IPSModule
                     $msg .= $this->Translate('message') . '=' . $smsContent;
                     break;
             }
-            $msg .= "\n";
+            $msg .= PHP_EOL;
         }
         echo $msg;
     }
@@ -264,54 +731,15 @@ class Sipgate extends IPSModule
             $participants = $this->GetArrayElem($dat, 'participants', '');
             $this->SendDebug(__FUNCTION__, 'participants=' . print_r($participants, true), 0);
 
-            $msg .= "\n";
+            $msg .= PHP_EOL;
         }
         echo $msg;
     }
 
-    private function getToken()
-    {
-        $user = $this->ReadPropertyString('user');
-        $password = $this->ReadPropertyString('password');
-
-        $dtoken = $this->GetBuffer('Token');
-        $jtoken = json_decode($dtoken, true);
-        $token = isset($jtoken['token']) ? $jtoken['token'] : '';
-        $token_expiration = isset($jtoken['token_expiration']) ? $jtoken['token_expiration'] : 0;
-
-        if ($token_expiration < time()) {
-            $postdata = [
-                'username' => $user,
-                'password' => $password
-            ];
-
-            $header = [
-                'Accept: application/json',
-                'Content-Type: application/x-www-form-urlencoded'
-            ];
-
-            $ctoken = $this->do_HttpRequest('/authorization/token', $header, $postdata, true);
-            $this->SendDebug(__FUNCTION__, 'ctoken=' . print_r($ctoken, true), 0);
-            if ($ctoken == '') {
-                return false;
-            }
-            $jtoken = json_decode($ctoken, true);
-            $token = $jtoken['token'];
-
-            $jtoken = [
-                'token'            => $token,
-                'token_expiration' => time() + 300
-            ];
-            $this->SetBuffer('Token', json_encode($jtoken));
-        }
-
-        return $token;
-    }
-
     private function do_ApiCall($cmd_url, $postdata = '', $isJson = true, $customrequest = '')
     {
-        $token = $this->getToken();
-        if ($token == '') {
+        $access_token = $this->GetApiAccessToken();
+        if ($access_token == '') {
             return false;
         }
 
@@ -324,7 +752,7 @@ class Sipgate extends IPSModule
         } elseif ($customrequest == '') {
             $header[] = 'Content-Type: application/x-www-form-urlencoded';
         }
-        $header[] = 'Authorization: Bearer ' . $token;
+        $header[] = 'Authorization: Bearer ' . $access_token;
 
         $cdata = $this->do_HttpRequest($cmd_url, $header, $postdata, $isJson, $customrequest);
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
@@ -384,31 +812,29 @@ class Sipgate extends IPSModule
         $err = '';
         $data = '';
         if ($cerrno) {
-            $statuscode = IS_SERVERERROR;
+            $statuscode = self::$IS_SERVERERROR;
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
         } elseif ($httpcode != 200) {
             if ($httpcode == 401) {
-                $statuscode = IS_UNAUTHORIZED;
+                $statuscode = self::$IS_UNAUTHORIZED;
                 $err = "got http-code $httpcode (unauthorized)";
             } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = IS_SERVERERROR;
+                $statuscode = self::$IS_SERVERERROR;
                 $err = "got http-code $httpcode (server error)";
             } elseif ($httpcode == 204) {
-                // 204 = No Content	= Die Anfrage wurde erfolgreich durchgeführt, die Antwort enthält jedoch bewusst keine Daten.
-                // kommt zB bei senden von SMS
                 $data = json_encode(['status' => 'ok']);
             } else {
-                $statuscode = IS_HTTPERROR;
+                $statuscode = self::$IS_HTTPERROR;
                 $err = "got http-code $httpcode";
             }
         } elseif ($cdata == '') {
-            $statuscode = IS_INVALIDDATA;
+            $statuscode = self::$IS_INVALIDDATA;
             $err = 'no data';
         } else {
             if ($isJson) {
                 $jdata = json_decode($cdata, true);
                 if ($jdata == '') {
-                    $statuscode = IS_INVALIDDATA;
+                    $statuscode = self::$IS_INVALIDDATA;
                     $err = 'malformed response';
                 } else {
                     $data = $cdata;
@@ -425,43 +851,6 @@ class Sipgate extends IPSModule
         }
 
         return $data;
-    }
-
-    public function Hangup(string $callId)
-    {
-        $cdata = $this->do_ApiCall('/calls/' . $callId, '', true, 'DELETE');
-        $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
-
-        $this->SetStatus(IS_ACTIVE);
-        return $cdata;
-    }
-
-    public function TestAnnouncement()
-    {
-        $wav_url = 'https://static.sipgate.com/examples/wav/example.wav';
-
-        $postdata = [
-            'caller'   => 'e1',
-            'callee'   => '+491718883302',
-            'callerId' => '+4923274178948'
-        ];
-
-        $cdata = $this->do_ApiCall('/sessions/calls', $postdata, true);
-        if ($cdata == '') {
-            return;
-        }
-        $jdata = json_decode($cdata, true);
-        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
-        $sessionId = $jdata['sessionId'];
-
-        /*
-        sleep (15);
-
-        $postdata = [
-                'url'   => $wav_url
-            ];
-        $cdata = $this->do_ApiCall('/calls/' . $sessionId . '/announcements', $postdata, true);
-         */
     }
 
     public function GetForwardings(string $deviceId = 'p0')
@@ -481,40 +870,44 @@ class Sipgate extends IPSModule
 
         $msg = $this->Translate('current forwardings') . ":\n";
 
-        $phones = $jdata['items'];
-        foreach ($phones as $phone) {
-            $this->SendDebug(__FUNCTION__, 'phone=' . print_r($phone, true), 0);
-            $id = $phone['id'];
-            $alias = $phone['alias'];
+        if (isset($jdata['items'])) {
+            $phones = $jdata['items'];
+            foreach ($phones as $phone) {
+                $this->SendDebug(__FUNCTION__, 'phone=' . print_r($phone, true), 0);
+                $id = $phone['id'];
+                $alias = $phone['alias'];
 
-            $msg .= '  ';
-            $msg .= $this->Translate('phoneline') . '=' . $id;
-            $msg .= ', ';
-            $msg .= $this->Translate('alias') . '=' . $alias;
-            $msg .= "\n";
+                $msg .= '  ';
+                $msg .= $this->Translate('phoneline') . '=' . $id;
+                $msg .= ', ';
+                $msg .= $this->Translate('alias') . '=' . $alias;
+                $msg .= PHP_EOL;
 
-            $cdata = $this->GetForwardings($id);
-            $jdata = json_decode($cdata, true);
-            $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+                $cdata = $this->GetForwardings($id);
+                $jdata = json_decode($cdata, true);
+                $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
-            $forwards = $jdata['items'];
-            foreach ($forwards as $forward) {
-                $this->SendDebug(__FUNCTION__, 'forward=' . print_r($forward, true), 0);
+                if (isset($jdata['items'])) {
+                    $forwards = $jdata['items'];
+                    foreach ($forwards as $forward) {
+                        $this->SendDebug(__FUNCTION__, 'forward=' . print_r($forward, true), 0);
 
-                $alias = $this->GetArrayElem($forward, 'alias', '');
-                $destination = $this->GetArrayElem($forward, 'destination', '');
-                $timeout = $this->GetArrayElem($forward, 'timeout', '');
-                $active = $this->GetArrayElem($forward, 'active', '');
+                        $alias = $this->GetArrayElem($forward, 'alias', '');
+                        $destination = $this->GetArrayElem($forward, 'destination', '');
+                        $timeout = $this->GetArrayElem($forward, 'timeout', '');
+                        $active = $this->GetArrayElem($forward, 'active', '');
 
-                $msg .= '    ';
-                if ($active) {
-                    $msg .= $this->Translate('destination') . '=' . $destination;
-                    $msg .= ', ';
-                    $msg .= $this->Translate('alias') . '=' . $alias;
-                    $msg .= ', ';
-                    $msg .= $this->Translate('timeout') . '=' . $timeout;
+                        $msg .= '    ';
+                        if ($active) {
+                            $msg .= $this->Translate('destination') . '=' . $destination;
+                            $msg .= ', ';
+                            $msg .= $this->Translate('alias') . '=' . $alias;
+                            $msg .= ', ';
+                            $msg .= $this->Translate('timeout') . '=' . $timeout;
+                        }
+                        $msg .= PHP_EOL;
+                    }
                 }
-                $msg .= "\n";
             }
         }
         echo $msg;

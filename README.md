@@ -28,31 +28,24 @@ Besonderheit: wird die SMS an ein Festnetzanschluss geschickt, ruft Sipgate dies
 
 ## 2. Voraussetzungen
 
- - IP-Symcon ab Version 5.3<br>
-   Version 4.4 mit Branch _ips_4.4_ (nur noch Fehlerkorrekturen)
+ - IP-Symcon ab Version 5.3
  - Sipgate Basic-Account, ggfs Freischaltung bestimmter Funktionen
 
 ## 3. Installation
 
 ### a. Laden des Moduls
 
-Die Konsole von IP-Symcon öffnen. Im Objektbaum unter Kerninstanzen die Instanz __*Modules*__ durch einen doppelten Mausklick öffnen.
+Die Webconsole von IP-Symcon mit _http://\<IP-Symcon IP\>:3777/console/_ öffnen.
 
-In der _Modules_ Instanz rechts oben auf den Button __*Hinzufügen*__ drücken.
-
-In dem sich öffnenden Fenster folgende URL hinzufügen:
-
-`https://github.com/demel42/IPSymconSipgate.git`
-
-und mit _OK_ bestätigen.
-
-Anschließend erscheint ein Eintrag für das Modul in der Liste der Instanz _Modules_
+Den **Modulstore** öffnen und im Suchfeld nun `Sipgate-Client` eingeben, das Modul auswählen und auf _Installieren_ auswählen.
+Alternativ kann das Modul auch über **ModulControl** (im Objektbaum innerhalb _Kern Instanzen_ die Instanz _Modules_) installiert werden,
+als URL muss `https://github.com/demel42/IPSymconSipgate` angegeben werden.
 
 ### b. Einrichtung in IPS
 
-In IP-Symcon nun _Instanz hinzufügen_ (_CTRL+1_) auswählen unter der Kategorie, unter der man die Instanz hinzufügen will, und Hersteller _Sipgate_ und als Gerät _Sipgate_ auswählen.
+In IP-Symcon nun unterhalb des Wurzelverzeichnisses die Funktion _Instanz hinzufügen_ auswählen, als Gerät _Sipgate Basic_ auswählen.
 
-In dem Konfigurationsdialog die Zugangsdaten des Accounts eintragen.
+In dem Konfigurationsdialog siehe **Anmeldung bei Sipgate""
 
 ## 4. Funktionsreferenz
 
@@ -78,23 +71,20 @@ Beispiel siehe Funktion _ShowForwardings()_ in _modul.php_.
 setzt/löscht die Umleitung des angegebenen Telefons.
 Beispiel siehe Funktion _TestForwarding()_ in _modul.php_.
 
-
 ## 5. Konfiguration:
 
 ### Variablen
 
-| Eigenschaft | Typ    | Standardwert | Beschreibung |
-| :---------- | :----- | :----------- | :----------- |
-| Benutzer    | string |              | sipgate-Benutzer |
-| Passwort    | string |              | Passwort des Benutzers |
+| Eigenschaft            | Typ     | Standardwert | Beschreibung |
+| :--------------------- | :------ | :----------- | :----------- |
+| Aktualisiere Daten ... | integer | 24           | Aktualisierungsintervall, Angabe in Stunden |
 
 ### Schaltflächen
 
 | Bezeichnung             | Beschreibung |
 | :---------------------- | :----------- |
+| Aktualisieren Daten     | führt eine sofortige Aktualisierung durch |
 | Zugangsdaten überprüfen | Testet die Zugangsdaten und gibt Accout-Details aus |
-| SMS testen              | SMS-Funktion testen |
-| Anruf-Historie abrufen  | Anruf-Historie abrufen und ausgeben |
 
 ## 6. Anhang
 
@@ -107,7 +97,10 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
-- 1.5 @ 18.12.2020 14:57 (beta)
+- 2.0 @ 01.02.2022 10:58
+  - Umstellung auf Anmeldung per OAuth
+
+- 1.5 @ 18.12.2020 14:57
   - PHP_CS_FIXER_IGNORE_ENV=1 in github/workflows/style.yml eingefügt
   - LICENSE.md hinzugefügt
 
