@@ -86,6 +86,13 @@ Beispiel siehe Funktion _TestForwarding()_ in _modul.php_.
 | Aktualisieren Daten     | führt eine sofortige Aktualisierung durch |
 | Zugangsdaten überprüfen | Testet die Zugangsdaten und gibt Accout-Details aus |
 
+### Variablenprofile
+
+Es werden folgende Variablenprofile angelegt:
+
+* Integer<br>
+Sipgate.Currency
+
 ## 6. Anhang
 
 GUIDs
