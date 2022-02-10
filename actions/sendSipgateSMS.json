@@ -1,0 +1,35 @@
+{
+    "id": "{FD3FDEC2-6694-10D7-701A-6390DF5E3BA2}",
+    "caption": "Send SMS via Sipgate",
+    "form": [
+        {
+            "type": "ValidationTextBox",
+            "name": "TELNO",
+            "caption": "Telno",
+            "validate": "^$|^((\\+|00)[1-9]\\d{0,3}|0 ?[1-9]|\\(00? ?[1-9][\\d ]*\\))[\\d\\-/ ]*$"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "MESSAGETEXT",
+            "caption": "Message text"
+        }
+    ],
+    "action": "Sipgate_SendSMS($_IPS['TARGET'], $_IPS['TELNO'], $_IPS['MESSAGETEXT']);",
+    "restrictions": {
+        "objectType": [ 1 ],
+        "moduleID": [ "{D8C71279-8E04-4466-8996-04B6B6CF2B1D}" ],
+        "includeEnvironments": [ "TestCommands", "Default" ]
+    },
+    "priority": 10,
+    "category": "target",
+    "description": "Send SMS via Sipgate",
+	"format": "SMS to \"{TELNO}\" with message \"{MESSAGETEXT}\"",
+    "locale": {
+        "de": {
+            "Send SMS via Sipgate": "SMS über Sipgate verschicken",
+            "Message text": "Nachricht",
+            "Telno": "Telefonnummer",
+			"SMS to \"{TELNO}\" with message \"{MESSAGETEXT}\"": "SMS an \"{TELNO}\" mit Nachricht \"{MESSAGETEXT}\""
+        }
+    }
+}
