@@ -115,21 +115,26 @@ trait SipgateCommonLib
         $lib = IPS_GetLibrary($mod['LibraryID']);
 
         $s = '';
+        $m = [];
 
         $s .= 'Modul "' . $mod['ModuleName'] . '"' . PHP_EOL;
         $s .= '  GUID: ' . $mod['ModuleID'] . PHP_EOL;
+        $m[] = 'module=' . $mod['ModuleName'];
 
         $s .= PHP_EOL;
 
         $s .= 'Library "' . $lib['Name'] . '"' . PHP_EOL;
         $s .= '  GUID: ' . $lib['LibraryID'] . PHP_EOL;
         $s .= '  Version: ' . $lib['Version'] . PHP_EOL;
+        $m[] = 'version=' . $lib['Version'];
         if ($lib['Build'] > 0) {
             $s .= '  Build: ' . $lib['Build'] . PHP_EOL;
+            $m[] = 'build=' . $lib['Build'];
         }
         $ts = $lib['Date'];
         $d = $ts > 0 ? date('d.m.Y H:i:s', $ts) : '';
         $s .= '  Date: ' . $d . PHP_EOL;
+        $m[] = 'date=' . $d;
 
         $src = '';
         $scID = IPS_GetInstanceListByModuleID('{F45B5D1F-56AE-4C61-9AB2-C87C63149EC3}')[0];
@@ -147,6 +152,7 @@ trait SipgateCommonLib
                     default:
                         break;
                 }
+                $m[] = 'source=' . $src;
                 break;
             }
         }
@@ -171,9 +177,11 @@ trait SipgateCommonLib
                 switch ($branch) {
                     case 'master':
                     case 'main':
+                        $m[] = 'source=git';
                         break;
                     default:
                         $src .= ' [' . $branch . ']';
+                        $m[] = 'source=git' . $src . '[' . $branch . ']';
                         break;
                 }
                 break;
@@ -181,6 +189,7 @@ trait SipgateCommonLib
         }
         $s .= '  Source: ' . $src . PHP_EOL;
 
+        $this->SendDebug(__FUNCTION__, implode(', ', $m), 0);
         return $s;
     }
 }
