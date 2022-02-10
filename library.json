@@ -4,9 +4,9 @@
 	"name": "Sipgate-Client",
 	"url": "https://github.com/demel42/IPSymconSipgate",
 	"compatibility": {
-		"version": "5.3"
+		"version": "6.0"
 	},
-	"version": "2.0",
+	"version": "2.1",
 	"build": 0,
-	"date": 1643709520
+	"date": 1644511508
 }

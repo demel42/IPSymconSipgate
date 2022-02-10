@@ -1,6 +1,6 @@
 # IPSymconSipgate
 
-[![IPS-Version](https://img.shields.io/badge/Symcon_Version-5.3+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
+[![IPS-Version](https://img.shields.io/badge/Symcon_Version-6.0+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
 ![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
@@ -28,7 +28,7 @@ Besonderheit: wird die SMS an ein Festnetzanschluss geschickt, ruft Sipgate dies
 
 ## 2. Voraussetzungen
 
- - IP-Symcon ab Version 5.3
+ - IP-Symcon ab Version 6.0
  - Sipgate Basic-Account, ggfs Freischaltung bestimmter Funktionen
 
 ## 3. Installation
@@ -103,6 +103,9 @@ GUIDs
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
 
 ## 7. Versions-Historie
+
+- 2.1 @ 10.02.2022 17:45
+  - Aktion "SMS senden" hinzugefügt
 
 - 2.0 @ 01.02.2022 10:58
   - Umstellung auf Anmeldung per OAuth
