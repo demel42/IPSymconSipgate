@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../libs/common.php';  // globale Funktionen
+require_once __DIR__ . '/../libs/CommonStubs/common.php'; // globale Funktionen
 require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
 
 class Sipgate extends IPSModule
 {
-    use SipgateCommonLib;
+    use StubsCommonLib;
     use SipgateLocalLib;
 
     private $oauthIdentifer = 'sipgate';
@@ -78,6 +78,7 @@ class Sipgate extends IPSModule
         }
 
         if ($this->CheckConfiguration() != false) {
+            $this->SetTimerInterval('UpdateData', 0);
             $this->SetStatus(self::$IS_INVALIDCONFIG);
             return;
         }
@@ -93,11 +94,13 @@ class Sipgate extends IPSModule
 
         $refresh_token = $this->ReadAttributeString('ApiRefreshToken');
         if ($refresh_token == '') {
+            $this->SetTimerInterval('UpdateData', 0);
             $this->SetStatus(self::$IS_NOLOGIN);
             return;
         }
 
         $this->SetStatus(IS_ACTIVE);
+        $this->SetUpdateInterval();
     }
 
     protected function GetFormElements()
@@ -277,41 +280,10 @@ class Sipgate extends IPSModule
             ],
         ];
 
-        $formActions[] = [
-            'type'    => 'ExpansionPanel',
-            'caption' => 'Information',
-            'items'   => [
-                [
-                    'type'    => 'Label',
-                    'caption' => $this->InstanceInfo($this->InstanceID),
-                ],
-            ],
-        ];
+        $formActions[] = $this->GetInformationForm();
+        $formActions[] = $this->GetReferencesForm();
 
         return $formActions;
-    }
-
-    private function RegisterOAuth($WebOAuth)
-    {
-        $ids = IPS_GetInstanceListByModuleID('{F99BF07D-CECA-438B-A497-E4B55F139D37}');
-        if (count($ids) > 0) {
-            $clientIDs = json_decode(IPS_GetProperty($ids[0], 'ClientIDs'), true);
-            $found = false;
-            foreach ($clientIDs as $index => $clientID) {
-                if ($clientID['ClientID'] == $WebOAuth) {
-                    if ($clientID['TargetID'] == $this->InstanceID) {
-                        return;
-                    }
-                    $clientIDs[$index]['TargetID'] = $this->InstanceID;
-                    $found = true;
-                }
-            }
-            if (!$found) {
-                $clientIDs[] = ['ClientID' => $WebOAuth, 'TargetID' => $this->InstanceID];
-            }
-            IPS_SetProperty($ids[0], 'ClientIDs', json_encode($clientIDs));
-            IPS_ApplyChanges($ids[0]);
-        }
     }
 
     public function Login()
@@ -433,7 +405,6 @@ class Sipgate extends IPSModule
                 $this->SendDebug(__FUNCTION__, 'has no refresh_token', 0);
                 $this->WriteAttributeString('ApiRefreshToken', '');
                 $this->SetBuffer('ApiAccessToken', '');
-                // $this->SetTimerInterval('UpdateData', 0);
                 $this->SetStatus(self::$IS_NOLOGIN);
                 return false;
             }
@@ -481,8 +452,26 @@ class Sipgate extends IPSModule
     {
         $hour = $this->ReadPropertyInteger('UpdateDataInterval');
         $msec = $hour > 0 ? $hour * 1000 * 60 * 60 : 0;
-        $this->SetTimerInterval('UpdateData', $msec);
         $this->SendDebug(__FUNCTION__, 'hour=' . $hour . ', msec=' . $msec, 0);
+        $this->SetTimerInterval('UpdateData', $msec);
+    }
+
+    public function RequestAction($Ident, $Value)
+    {
+        if ($this->CommonRequestAction($Ident, $Value)) {
+            return;
+        }
+
+        if ($this->GetStatus() == IS_INACTIVE) {
+            $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
+            return;
+        }
+
+        switch ($Ident) {
+            default:
+                $this->SendDebug(__FUNCTION__, 'invalid ident ' . $Ident, 0);
+                break;
+        }
     }
 
     public function UpdateData()

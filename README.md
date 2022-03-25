@@ -104,6 +104,11 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.2 @ 25.03.2022 18:31
+  - automatische Abfrage des Kontostands aktviert
+  - libs/common.php -> submodule CommonStubs
+  - Anzeige der Referenzen der Instanz
+
 - 2.1 @ 10.02.2022 17:45
   - Aktion "SMS senden" hinzugefügt
 
