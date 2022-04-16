@@ -112,15 +112,9 @@ class Sipgate extends IPSModule
             'caption' => 'Sipgate Basic',
         ];
 
-        $instID = IPS_GetInstanceListByModuleID('{9486D575-BE8C-4ED8-B5B5-20930E26DE6F}')[0];
-        if (IPS_GetInstance($instID)['InstanceStatus'] != IS_ACTIVE) {
-            $msg = 'Error: Symcon Connect is not active!';
-        } else {
-            $msg = 'Status: Symcon Connect is OK!';
-        }
         $formElements[] = [
             'type'    => 'Label',
-            'caption' => $msg
+            'caption' => $this->GetConnectStatusText(),
         ];
 
         $s = $this->CheckConfiguration();
