@@ -78,7 +78,7 @@ class Sipgate extends IPSModule
         }
 
         if ($this->CheckConfiguration() != false) {
-            $this->SetTimerInterval('UpdateData', 0);
+            $this->MaintainTimer('UpdateData', 0);
             $this->SetStatus(self::$IS_INVALIDCONFIG);
             return;
         }
@@ -94,7 +94,7 @@ class Sipgate extends IPSModule
 
         $refresh_token = $this->ReadAttributeString('ApiRefreshToken');
         if ($refresh_token == '') {
-            $this->SetTimerInterval('UpdateData', 0);
+            $this->MaintainTimer('UpdateData', 0);
             $this->SetStatus(self::$IS_NOLOGIN);
             return;
         }
@@ -446,8 +446,7 @@ class Sipgate extends IPSModule
     {
         $hour = $this->ReadPropertyInteger('UpdateDataInterval');
         $msec = $hour > 0 ? $hour * 1000 * 60 * 60 : 0;
-        $this->SendDebug(__FUNCTION__, 'hour=' . $hour . ', msec=' . $msec, 0);
-        $this->SetTimerInterval('UpdateData', $msec);
+        $this->MaintainTimer('UpdateData', $msec);
     }
 
     public function RequestAction($Ident, $Value)
@@ -473,7 +472,7 @@ class Sipgate extends IPSModule
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             if ($this->GetStatus() == self::$IS_NOLOGIN) {
                 $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => pause', 0);
-                $this->SetTimerInterval('UpdateData', 0);
+                $this->MaintainTimer('UpdateData', 0);
             } else {
                 $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
             }
