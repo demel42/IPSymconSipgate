@@ -104,6 +104,11 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.3 @ 25.04.2022 15:36
+  - Übersetzung vervollständigt
+  - Implememtierung einer Update-Logik
+  - diverse interne Änderungen
+
 - 2.2.1 @ 13.04.2022 15:31
   - potentieller Namenskonflikt behoben (trait CommonStubs)
   - Aktualisierung von submodule CommonStubs

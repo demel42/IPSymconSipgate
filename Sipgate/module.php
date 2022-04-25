@@ -12,11 +12,6 @@ class Sipgate extends IPSModule
 
     private $oauthIdentifer = 'sipgate';
 
-    public function InstallVarProfiles(bool $reInstall = false)
-    {
-        $this->CreateVarProfile('Sipgate.Currency', VARIABLETYPE_FLOAT, ' €', 0, 0, 0, 2, 'Euro', '', $reInstall);
-    }
-
     public function Create()
     {
         parent::Create();
@@ -27,53 +22,41 @@ class Sipgate extends IPSModule
 
         $this->RegisterAttributeString('ApiRefreshToken', '');
 
-        $this->InstallVarProfiles(false);
-
         $this->SetBuffer('ApiAccessToken', '');
 
-        $this->RegisterTimer('UpdateData', 0, 'Sipgate_UpdateData(' . $this->InstanceID . ');');
+        $this->RegisterAttributeString('UpdateInfo', '');
+
+        $this->InstallVarProfiles(false);
+
+        $this->RegisterTimer('UpdateData', 0, $this->GetModulePrefix() . '_UpdateData(' . $this->InstanceID . ');');
+
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
 
-    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+    public function MessageSink($tstamp, $senderID, $message, $data)
     {
-        parent::MessageSink($TimeStamp, $SenderID, $Message, $Data);
+        parent::MessageSink($tstamp, $senderID, $message, $data);
 
-        if ($Message == IPS_KERNELMESSAGE && $Data[0] == KR_READY) {
+        if ($message == IPS_KERNELMESSAGE && $data[0] == KR_READY) {
             $this->RegisterOAuth($this->oauthIdentifer);
         }
-    }
-
-    private function CheckConfiguration()
-    {
-        $s = '';
-        $r = [];
-
-        if ($r != []) {
-            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
-            foreach ($r as $p) {
-                $s .= '- ' . $p . PHP_EOL;
-            }
-        }
-
-        return $s;
     }
 
     public function ApplyChanges()
     {
         parent::ApplyChanges();
 
-        $vpos = 0;
-        $this->MaintainVariable('Credit', $this->Translate('credit'), VARIABLETYPE_FLOAT, 'Sipgate.Currency', $vpos++, true);
+        $this->MaintainReferences();
 
-        $refs = $this->GetReferenceList();
-        foreach ($refs as $ref) {
-            $this->UnregisterReference($ref);
+        if ($this->CheckPrerequisites() != false) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            return;
         }
 
-        $module_disable = $this->ReadPropertyBoolean('module_disable');
-        if ($module_disable) {
-            $this->SetStatus(IS_INACTIVE);
+        if ($this->CheckUpdate() != false) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
             return;
         }
 
@@ -83,7 +66,24 @@ class Sipgate extends IPSModule
             return;
         }
 
+        $vpos = 0;
+
+        $this->MaintainVariable('Credit', $this->Translate('credit'), VARIABLETYPE_FLOAT, 'Sipgate.Currency', $vpos++, true);
+
+        $refs = $this->GetReferenceList();
+        foreach ($refs as $ref) {
+            $this->UnregisterReference($ref);
+        }
+
+        $module_disable = $this->ReadPropertyBoolean('module_disable');
+        if ($module_disable) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->SetStatus(self::$IS_DEACTIVATED);
+            return;
+        }
+
         if ($this->GetConnectUrl() == false) {
+            $this->MaintainTimer('UpdateData', 0);
             $this->SetStatus(self::$IS_NOSYMCONCONNECT);
             return;
         }
@@ -105,28 +105,16 @@ class Sipgate extends IPSModule
 
     protected function GetFormElements()
     {
-        $formElements = [];
+        $formElements = $this->GetCommonFormElements('Sipgate Basic');
 
-        $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Sipgate Basic',
-        ];
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            return $formElements;
+        }
 
         $formElements[] = [
             'type'    => 'Label',
             'caption' => $this->GetConnectStatusText(),
         ];
-
-        $s = $this->CheckConfiguration();
-        if ($s != '') {
-            $formElements[] = [
-                'type'    => 'Label',
-                'caption' => $s
-            ];
-            $formElements[] = [
-                'type'    => 'Label',
-            ];
-        }
 
         $formElements[] = [
             'type'    => 'CheckBox',
@@ -180,20 +168,42 @@ class Sipgate extends IPSModule
     {
         $formActions = [];
 
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            $formActions[] = $this->GetCompleteUpdateFormAction();
+
+            $formActions[] = $this->GetInformationFormAction();
+            $formActions[] = $this->GetReferencesFormAction();
+
+            return $formActions;
+        }
+
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Update data',
-            'onClick' => 'Sipgate_UpdateData($id);'
+            'onClick' => $this->GetModulePrefix() . '_UpdateData($id);'
         ];
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Test account',
-            'onClick' => 'Sipgate_TestAccount($id);'
+            'onClick' => $this->GetModulePrefix() . '_TestAccount($id);'
         ];
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Login at Sipgate',
             'onClick' => 'echo Sipgate_Login($id);'
+        ];
+
+        $formActions[] = [
+            'type'      => 'ExpansionPanel',
+            'caption'   => 'Expert area',
+            'expanded'  => false,
+            'items'     => [
+                [
+                    'type'    => 'Button',
+                    'caption' => 'Re-install variable-profiles',
+                    'onClick' => $this->GetModulePrefix() . '_InstallVarProfiles($id, true);'
+                ],
+            ]
         ];
 
         $formActions[] = [
@@ -227,24 +237,24 @@ class Sipgate extends IPSModule
                         [
                             'type'    => 'Button',
                             'caption' => 'Test SMS',
-                            'onClick' => 'Sipgate_TestSMS($id, $telno, $msg);'
+                            'onClick' => $this->GetModulePrefix() . '_TestSMS($id, $telno, $msg);'
                         ],
                     ],
                 ],
                 [
                     'type'    => 'Button',
                     'caption' => 'Show Call-History',
-                    'onClick' => 'Sipgate_ShowHistory($id);'
+                    'onClick' => $this->GetModulePrefix() . '_ShowHistory($id);'
                 ],
                 [
                     'type'    => 'Button',
                     'caption' => 'Show current Calls',
-                    'onClick' => 'Sipgate_ShowCallList($id);'
+                    'onClick' => $this->GetModulePrefix() . '_ShowCallList($id);'
                 ],
                 [
                     'type'    => 'Button',
                     'caption' => 'Show current Forwardings',
-                    'onClick' => 'Sipgate_ShowForwardings($id);'
+                    'onClick' => $this->GetModulePrefix() . '_ShowForwardings($id);'
                 ],
                 [
                     'type'    => 'RowLayout',
@@ -267,15 +277,15 @@ class Sipgate extends IPSModule
                         [
                             'type'    => 'Button',
                             'caption' => 'Test Forwarding',
-                            'onClick' => 'Sipgate_TestForwarding($id, $destination, $timeout, $active);'
+                            'onClick' => $this->GetModulePrefix() . '_TestForwarding($id, $destination, $timeout, $active);'
                         ],
                     ],
                 ],
             ],
         ];
 
-        $formActions[] = $this->GetInformationForm();
-        $formActions[] = $this->GetReferencesForm();
+        $formActions[] = $this->GetInformationFormAction();
+        $formActions[] = $this->GetReferencesFormAction();
 
         return $formActions;
     }
