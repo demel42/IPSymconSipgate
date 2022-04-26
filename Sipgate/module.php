@@ -78,7 +78,7 @@ class Sipgate extends IPSModule
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_DEACTIVATED);
+            $this->SetStatus(IS_INACTIVE);
             return;
         }
 
@@ -552,7 +552,7 @@ class Sipgate extends IPSModule
             $lastname = '';
         }
 
-        $msg = $this->translate('valid account-data') . PHP_EOL;
+        $msg = $this->Translate('valid account-data') . PHP_EOL;
 
         if ($company != '') {
             $msg = '  ' . $this->Translate('company') . '=' . $company . PHP_EOL;
@@ -570,7 +570,7 @@ class Sipgate extends IPSModule
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
         $msg .= PHP_EOL;
-        $msg .= $this->translate('phonelines') . PHP_EOL;
+        $msg .= $this->Translate('phonelines') . PHP_EOL;
         $items = $jdata['items'];
         foreach ($items as $item) {
             $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
@@ -590,7 +590,7 @@ class Sipgate extends IPSModule
         $items = $jdata['items'];
 
         $msg .= PHP_EOL;
-        $msg .= $this->translate('devices') . PHP_EOL;
+        $msg .= $this->Translate('devices') . PHP_EOL;
         foreach ($items as $item) {
             $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
             $id = $item['id'];

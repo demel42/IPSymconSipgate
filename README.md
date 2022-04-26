@@ -104,6 +104,10 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.3.1 @ 26.04.2022 12:20
+  - Korrektur: self::$IS_DEACTIVATED wieder IS_INACTIVE
+  - IPS-Version ist nun minimal 6.0
+
 - 2.3 @ 25.04.2022 15:36
   - Übersetzung vervollständigt
   - Implememtierung einer Update-Logik
