@@ -12,6 +12,15 @@ class Sipgate extends IPSModule
 
     private $oauthIdentifer = 'sipgate';
 
+    private $ModuleDir;
+
+    public function __construct(string $InstanceID)
+    {
+        parent::__construct($InstanceID);
+
+        $this->ModuleDir = __DIR__;
+    }
+
     public function Create()
     {
         parent::Create();
@@ -150,13 +159,11 @@ class Sipgate extends IPSModule
             'caption' => 'Call settings',
             'items'   => [
                 [
-                    'type'    => 'Label',
-                    'caption' => 'Update data every X hour'
-                ],
-                [
                     'type'    => 'NumberSpinner',
                     'name'    => 'UpdateDataInterval',
-                    'caption' => 'Hours'
+                    'minimum' => 0,
+                    'suffix'  => 'Hours',
+                    'caption' => 'Update interval',
                 ],
             ],
         ];
@@ -190,7 +197,7 @@ class Sipgate extends IPSModule
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Login at Sipgate',
-            'onClick' => 'echo Sipgate_Login($id);'
+            'onClick' => 'echo ' . $this->GetModulePrefix() . '_Login($id);'
         ];
 
         $formActions[] = [
@@ -459,9 +466,9 @@ class Sipgate extends IPSModule
         $this->MaintainTimer('UpdateData', $msec);
     }
 
-    public function RequestAction($Ident, $Value)
+    public function RequestAction($ident, $value)
     {
-        if ($this->CommonRequestAction($Ident, $Value)) {
+        if ($this->CommonRequestAction($ident, $value)) {
             return;
         }
 
@@ -470,9 +477,9 @@ class Sipgate extends IPSModule
             return;
         }
 
-        switch ($Ident) {
+        switch ($ident) {
             default:
-                $this->SendDebug(__FUNCTION__, 'invalid ident ' . $Ident, 0);
+                $this->SendDebug(__FUNCTION__, 'invalid ident ' . $ident, 0);
                 break;
         }
     }
@@ -493,9 +500,10 @@ class Sipgate extends IPSModule
 
         $cdata = $this->do_ApiCall('/balance', '', true, 'GET');
         if ($cdata == '') {
-            echo $this->Translate('invalid balance-data');
+            $this->SendDebug(__FUNCTION__, 'invalid balance-data', 0);
             return;
         }
+
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 

@@ -1,0 +1,92 @@
+{
+	"translations": {
+		"de": {
+			"Sipgate Basic": "Sipgate Basic",
+
+			"__elements__": "",
+			"Disable instance": "Instanz deaktivieren",
+
+			"Sipgate Login": "Anmeldung bei Sipgate",
+
+			"Push \"Login at Sipgate\" in the action part of this configuration form.":
+				"\"Anmelden bei Sipgate\" in dem Aktionsbereich dieses Konfigurationsformulares drücken.",
+			"At the webpage from Sipgate log in with your Sipgate username and password.":
+				"Auf der Webseite von Sipgate mit dem Sipgate Benutzernamen und Passwort anmelden.",
+			"If the connection to IP-Symcon was successfull you get the message: \"Sipgate successfully connected!\". Close the browser window.":
+				"Wenn die Verbindung zu IP-Symcon erfolgreich war erscheint die Meldung: \"Sipgate successfully connected!\". Das Browserfenster kann nun geschlossen werden.",
+			"Return to this configuration form.":
+				"Danach zu diesem Konfigurationsformular zurückkehren und fortfahren.",
+
+			"Call settings": "Abrufeinstellungen",
+			"Update interval": "Aktualisierungsintervall",
+			"Hours": "Stunden",
+
+			"__actions__": "",
+
+			"__function__": "Login",
+			"Login at Sipgate": "bei Sipgate anmelden",
+
+			"__function__": "UpdateData",
+			"Update data": "Aktualisiere Daten",
+
+			"__function__": "TestAccount",
+			"Test account": "Zugangsdaten überprüfen",
+			"invalid account-data": "ungültige Zugangsdaten",
+			"invalid balance-data": "ungültige Guthaben-Daten",
+			"valid account-data": "gültige Zugangsdaten",
+			"user-id": "Kunden-Nr.",
+			"sip-id": "SIP-ID",
+			"name": "Name",
+			"company": "Firma",
+			"credit": "Guthaben",
+			"phonelines": "Anschlüsse",
+			"phone-id": "Anschluss-ID",
+			"alias": "Bezeichnung",
+			"devices": "Telefone",
+			"device-id": "Endgerät-ID",
+
+			"__function__": "TestSMS",
+			"telno": "Telefonnummer",
+			"msg": "Nachricht",
+			"Test SMS": "SMS testen",
+			"missing telno": "Telefonnummer fehlt",
+			"result of test": "Ergebnis des Tests",
+			"success": "Erfolg",
+			"failure": "Fehlschlag",
+
+			"__function__": "ShowHistory",
+			"Show Call-History": "Anruf-Historie anzeigen",
+			"call-history": "Anruf-Historie",
+			"direction": "Richtung",
+			"source": "Quelle",
+			"target": "Ziel",
+			"duration": "Dauer",
+			"message": "Nachricht",
+			"no history": "kein Historie anrufbar",
+
+			"__function__": "ShowCallList",
+			"Show current Calls": "aktuelle Anrufe anzeigen",
+			"current calls": "aktuelle Anrufe",
+			"destination": "Ziel",
+			"muted": "Stumm",
+			"hold": "Warten",
+			"recording": "Aufzeichnung",
+			"no current calls": "keine aktuellen Anrufe",
+
+			"__function__": "ShowForwardings",
+			"Show current Forwardings": "aktuelle Umleitungen anzeigen",
+			"current forwardings": "aktuelle Umleitungen",
+			"phoneline": "Anschluss",
+
+			"__function__": "TestForwarding",
+			"Test Forwarding": "Umleitung einrichten",
+			"timeout": "Wartezeit",
+			"active": "aktiv",
+
+			"__variables__": "",
+			"credit": "Guthaben",
+
+			"__end__": ""
+		}
+	}
+}
