@@ -104,6 +104,9 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.3.3 @ 10.05.2022 15:06
+  - update submodule CommonStubs
+
 - 2.3.2 @ 29.04.2022 12:31
   - Überlagerung von Translate und Aufteilung von locale.json in 3 translation.json (Modul, libs und CommonStubs)
 
