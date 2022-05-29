@@ -37,7 +37,7 @@ class Sipgate extends IPSModule
 
         $this->InstallVarProfiles(false);
 
-        $this->RegisterTimer('UpdateData', 0, $this->GetModulePrefix() . '_UpdateData(' . $this->InstanceID . ');');
+        $this->RegisterTimer('UpdateData', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateData", "");');
 
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
@@ -48,6 +48,7 @@ class Sipgate extends IPSModule
 
         if ($message == IPS_KERNELMESSAGE && $data[0] == KR_READY) {
             $this->RegisterOAuth($this->oauthIdentifer);
+            $this->SetUpdateInterval();
         }
     }
 
@@ -109,10 +110,14 @@ class Sipgate extends IPSModule
         }
 
         $this->SetStatus(IS_ACTIVE);
-        $this->SetUpdateInterval();
+
+        if (IPS_GetKernelRunlevel() == KR_READY) {
+            $this->RegisterOAuth($this->oauthIdentifer);
+            $this->SetUpdateInterval();
+        }
     }
 
-    protected function GetFormElements()
+    private function GetFormElements()
     {
         $formElements = $this->GetCommonFormElements('Sipgate Basic');
 
@@ -187,17 +192,17 @@ class Sipgate extends IPSModule
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Update data',
-            'onClick' => $this->GetModulePrefix() . '_UpdateData($id);'
+            'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateData", "");',
         ];
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Test account',
-            'onClick' => $this->GetModulePrefix() . '_TestAccount($id);'
+            'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "TestAccount", "");',
         ];
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Login at Sipgate',
-            'onClick' => 'echo ' . $this->GetModulePrefix() . '_Login($id);'
+            'onClick' => 'echo "' . $this->Login() . '";',
         ];
 
         $formActions[] = [
@@ -205,11 +210,7 @@ class Sipgate extends IPSModule
             'caption'   => 'Expert area',
             'expanded'  => false,
             'items'     => [
-                [
-                    'type'    => 'Button',
-                    'caption' => 'Re-install variable-profiles',
-                    'onClick' => $this->GetModulePrefix() . '_InstallVarProfiles($id, true);'
-                ],
+                $this->GetInstallVarProfilesFormItem(),
             ]
         ];
 
@@ -244,24 +245,24 @@ class Sipgate extends IPSModule
                         [
                             'type'    => 'Button',
                             'caption' => 'Test SMS',
-                            'onClick' => $this->GetModulePrefix() . '_TestSMS($id, $telno, $msg);'
+                            'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "TestSMS", json_encode(["telno" => $telno, "msg" => $msg]));',
                         ],
                     ],
                 ],
                 [
                     'type'    => 'Button',
                     'caption' => 'Show Call-History',
-                    'onClick' => $this->GetModulePrefix() . '_ShowHistory($id);'
+                    'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ShowHistory", "");',
                 ],
                 [
                     'type'    => 'Button',
                     'caption' => 'Show current Calls',
-                    'onClick' => $this->GetModulePrefix() . '_ShowCallList($id);'
+                    'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ShowCallList", "");',
                 ],
                 [
                     'type'    => 'Button',
                     'caption' => 'Show current Forwardings',
-                    'onClick' => $this->GetModulePrefix() . '_ShowForwardings($id);'
+                    'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ShowForwardings", "");',
                 ],
                 [
                     'type'    => 'RowLayout',
@@ -284,7 +285,7 @@ class Sipgate extends IPSModule
                         [
                             'type'    => 'Button',
                             'caption' => 'Test Forwarding',
-                            'onClick' => $this->GetModulePrefix() . '_TestForwarding($id, $destination, $timeout, $active);'
+                            'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "TestForwarding", json_encode(["destination" => $destination, "timeout" => $timeout, "active" => $active]));',
                         ],
                     ],
                 ],
@@ -297,7 +298,7 @@ class Sipgate extends IPSModule
         return $formActions;
     }
 
-    public function Login()
+    private function Login()
     {
         $url = 'https://oauth.ipmagic.de/authorize/' . $this->oauthIdentifer . '?username=' . urlencode(IPS_GetLicensee());
         $this->SendDebug(__FUNCTION__, 'url=' . $url, 0);
@@ -459,7 +460,7 @@ class Sipgate extends IPSModule
         return $refresh_token;
     }
 
-    protected function SetUpdateInterval()
+    private function SetUpdateInterval()
     {
         $hour = $this->ReadPropertyInteger('UpdateDataInterval');
         $msec = $hour > 0 ? $hour * 1000 * 60 * 60 : 0;
@@ -472,19 +473,35 @@ class Sipgate extends IPSModule
             return;
         }
 
-        if ($this->GetStatus() == IS_INACTIVE) {
-            $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
-            return;
-        }
-
         switch ($ident) {
+            case 'UpdateData':
+                $this->UpdateData();
+                break;
+            case 'TestAccount':
+                $this->TestAccount();
+                break;
+            case 'TestSMS':
+                $this->TestSMS($value);
+                break;
+            case 'ShowHistory':
+                $this->ShowHistory();
+                break;
+            case 'ShowCallList':
+                $this->ShowCallList();
+                break;
+            case 'ShowForwardings':
+                $this->ShowForwardings();
+                break;
+            case 'TestForwarding':
+                $this->TestForwarding($value);
+                break;
             default:
                 $this->SendDebug(__FUNCTION__, 'invalid ident ' . $ident, 0);
                 break;
         }
     }
 
-    public function UpdateData()
+    private function UpdateData()
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             if ($this->GetStatus() == self::$IS_NOLOGIN) {
@@ -516,11 +533,12 @@ class Sipgate extends IPSModule
         $this->SetUpdateInterval();
     }
 
-    public function TestAccount()
+    private function TestAccount()
     {
         $cdata = $this->do_ApiCall('/account', '', true, 'GET');
         if ($cdata == '') {
-            echo $this->Translate('invalid account-data');
+            $msg = $this->Translate('invalid account-data');
+            $this->PopupMessage($msg);
             return;
         }
         $jdata = json_decode($cdata, true);
@@ -530,7 +548,8 @@ class Sipgate extends IPSModule
 
         $cdata = $this->do_ApiCall('/balance', '', true, 'GET');
         if ($cdata == '') {
-            echo $this->Translate('invalid balance-data');
+            $msg = $this->Translate('invalid balance-data');
+            $this->PopupMessage($msg);
             return;
         }
         $jdata = json_decode($cdata, true);
@@ -610,17 +629,18 @@ class Sipgate extends IPSModule
             $msg .= $this->Translate('alias') . '=' . $alias;
             $msg .= PHP_EOL;
         }
-        echo $msg;
+
+        $this->PopupMessage($msg);
     }
 
-    public function SendSMS(string $Telno, string $Msg)
+    public function SendSMS(string $telno, string $msg)
     {
-        $Telno = preg_replace('<^\\+>', '00', $Telno);
-        $Telno = preg_replace('<\\D+>', '', $Telno);
+        $telno = preg_replace('<^\\+>', '00', $telno);
+        $telno = preg_replace('<\\D+>', '', $telno);
         $postdata = [
             'smsId'     => 's0',
-            'recipient' => $Telno,
-            'message'   => substr($Msg, 0, 160)
+            'recipient' => $telno,
+            'message'   => substr($msg, 0, 160)
         ];
         $cdata = $this->do_ApiCall('/sessions/sms', $postdata, true);
         if ($cdata == '') {
@@ -631,18 +651,23 @@ class Sipgate extends IPSModule
         return $status == 'ok' ? true : false;
     }
 
-    public function TestSMS(string $telno, string $msg)
+    private function TestSMS($params)
     {
+        $jparams = json_decode($params, true);
+        $telno = isset($jparams['telno']) ? $jparams['telno'] : '';
         if ($telno == '') {
-            echo $this->Translate('missing telno');
+            $msg = $this->Translate('missing telno');
+            $this->PopupMessage($msg);
             return;
         }
+        $msg = isset($jparams['msg']) ? $jparams['msg'] : '';
         if ($msg == '') {
             $msg = 'Test-SMS';
         }
 
         $ok = $this->SendSMS($telno, $msg);
-        echo $this->Translate('result of test') . ': ' . ($ok ? $this->Translate('success') : $this->Translate('failure'));
+        $msg = $this->Translate('result of test') . ': ' . ($ok ? $this->Translate('success') : $this->Translate('failure'));
+        $this->PopupMessage($msg);
     }
 
     public function GetHistory()
@@ -651,11 +676,12 @@ class Sipgate extends IPSModule
         return $cdata;
     }
 
-    public function ShowHistory()
+    private function ShowHistory()
     {
         $cdata = $this->GetHistory();
         if ($cdata == '') {
-            echo $this->Translate('no history');
+            $msg = $this->Translate('no history');
+            $this->PopupMessage($msg);
             return;
         }
         $jdata = json_decode($cdata, true);
@@ -694,7 +720,8 @@ class Sipgate extends IPSModule
             }
             $msg .= PHP_EOL;
         }
-        echo $msg;
+
+        $this->PopupMessage($msg);
     }
 
     public function GetCallList()
@@ -703,11 +730,12 @@ class Sipgate extends IPSModule
         return $cdata;
     }
 
-    public function ShowCallList()
+    private function ShowCallList()
     {
         $cdata = $this->GetCallList();
         if ($cdata == '') {
-            echo $this->Translate('no current calls');
+            $msg = $this->Translate('no current calls');
+            $this->PopupMessage($msg);
             return;
         }
         $jdata = json_decode($cdata, true);
@@ -734,7 +762,8 @@ class Sipgate extends IPSModule
 
             $msg .= PHP_EOL;
         }
-        echo $msg;
+
+        $this->PopupMessage($msg);
     }
 
     private function do_ApiCall($cmd_url, $postdata = '', $isJson = true, $customrequest = '')
@@ -863,7 +892,7 @@ class Sipgate extends IPSModule
         return $cdata;
     }
 
-    public function ShowForwardings()
+    private function ShowForwardings()
     {
         $cdata = $this->do_ApiCall('/w0/phonelines', '', true, 'GET');
         $jdata = json_decode($cdata, true);
@@ -911,7 +940,8 @@ class Sipgate extends IPSModule
                 }
             }
         }
-        echo $msg;
+
+        $this->PopupMessage($msg);
     }
 
     public function SetForwarding(string $destination, int $timeout, bool $active, string $deviceId = 'p0')
@@ -934,9 +964,20 @@ class Sipgate extends IPSModule
         return $status == 'ok' ? true : false;
     }
 
-    public function TestForwarding(string $destination, int $timeout, bool $active)
+    private function TestForwarding($params)
     {
+        $jparams = json_decode($params, true);
+        $destination = isset($jparams['destination']) ? $jparams['destination'] : '';
+        if ($destination == '') {
+            $msg = $this->Translate('missing destination');
+            $this->PopupMessage($msg);
+            return;
+        }
+        $timeout = isset($jparams['timeout']) ? $jparams['timeout'] : 0;
+        $active = isset($jparams['active']) ? $jparams['active'] : false;
+
         $ok = $this->SetForwarding($destination, $timeout, $active);
-        echo $this->Translate('result of test') . ': ' . ($ok ? $this->Translate('success') : $this->Translate('failure'));
+        $msg = $this->Translate('result of test') . ': ' . ($ok ? $this->Translate('success') : $this->Translate('failure'));
+        $this->PopupMessage($msg);
     }
 }
