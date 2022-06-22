@@ -104,6 +104,9 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.4.1 @ 22.06.2022 10:33
+  - Fix: Angabe der Kompatibilität auf 6.2 korrigiert
+
 - 2.4 @ 29.05.2022 15:31
   - update submodule CommonStubs
     Fix: Ausgabe des nächsten Timer-Zeitpunkts
