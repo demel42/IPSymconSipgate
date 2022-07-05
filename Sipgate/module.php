@@ -60,19 +60,19 @@ class Sipgate extends IPSModule
 
         if ($this->CheckPrerequisites() != false) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            $this->MaintainStatus(self::$IS_INVALIDPREREQUISITES);
             return;
         }
 
         if ($this->CheckUpdate() != false) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
+            $this->MaintainStatus(self::$IS_UPDATEUNCOMPLETED);
             return;
         }
 
         if ($this->CheckConfiguration() != false) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            $this->MaintainStatus(self::$IS_INVALIDCONFIG);
             return;
         }
 
@@ -88,13 +88,13 @@ class Sipgate extends IPSModule
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(IS_INACTIVE);
+            $this->MaintainStatus(IS_INACTIVE);
             return;
         }
 
         if ($this->GetConnectUrl() == false) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_NOSYMCONCONNECT);
+            $this->MaintainStatus(self::$IS_NOSYMCONCONNECT);
             return;
         }
 
@@ -105,11 +105,11 @@ class Sipgate extends IPSModule
         $refresh_token = $this->ReadAttributeString('ApiRefreshToken');
         if ($refresh_token == '') {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_NOLOGIN);
+            $this->MaintainStatus(self::$IS_NOLOGIN);
             return;
         }
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
 
         if (IPS_GetKernelRunlevel() == KR_READY) {
             $this->RegisterOAuth($this->oauthIdentifer);
@@ -311,14 +311,14 @@ class Sipgate extends IPSModule
             $this->SendDebug(__FUNCTION__, 'code missing, _GET=' . print_r($_GET, true), 0);
             $this->WriteAttributeString('ApiRefreshToken', '');
             $this->SetBuffer('ApiAccessToken', '');
-            $this->SetStatus(self::$IS_NOLOGIN);
+            $this->MaintainStatus(self::$IS_NOLOGIN);
             return;
         }
         $refresh_token = $this->GetApiRefreshToken($_GET['code']);
         $this->SendDebug(__FUNCTION__, 'refresh_token=' . $refresh_token, 0);
         $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
         if ($this->GetStatus() == self::$IS_NOLOGIN) {
-            $this->SetStatus(IS_ACTIVE);
+            $this->MaintainStatus(IS_ACTIVE);
         }
     }
 
@@ -386,7 +386,7 @@ class Sipgate extends IPSModule
         }
         if ($statuscode) {
             $this->SendDebug(__FUNCTION__, '    statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
             return false;
         }
         return $jdata;
@@ -417,7 +417,7 @@ class Sipgate extends IPSModule
                 $this->SendDebug(__FUNCTION__, 'has no refresh_token', 0);
                 $this->WriteAttributeString('ApiRefreshToken', '');
                 $this->SetBuffer('ApiAccessToken', '');
-                $this->SetStatus(self::$IS_NOLOGIN);
+                $this->MaintainStatus(self::$IS_NOLOGIN);
                 return false;
             }
             $jdata = $this->Call4ApiAccessToken(['refresh_token' => $refresh_token]);
@@ -529,7 +529,7 @@ class Sipgate extends IPSModule
         $this->SetValue('Credit', $amount);
         $this->SendDebug(__FUNCTION__, 'set variable "Credit" to ' . $amount, 0);
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
         $this->SetUpdateInterval();
     }
 
@@ -787,7 +787,7 @@ class Sipgate extends IPSModule
         $cdata = $this->do_HttpRequest($cmd_url, $header, $postdata, $isJson, $customrequest);
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
         return $cdata;
     }
 
@@ -877,7 +877,7 @@ class Sipgate extends IPSModule
         if ($statuscode) {
             $this->LogMessage('url=' . $url . ' => statuscode=' . $statuscode . ', err=' . $err, KL_WARNING);
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
         }
 
         return $data;
@@ -888,7 +888,7 @@ class Sipgate extends IPSModule
         $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', '', true, 'GET');
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
         return $cdata;
     }
 

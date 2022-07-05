@@ -104,6 +104,11 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.5 @ 05.07.2022 15:47
+  - Verbesserung: IPS-Status wird nur noch gesetzt, wenn er sich ändert
+  - update submodule CommonStubs
+    Fix: RegisterOAuth()
+
 - 2.4.1 @ 22.06.2022 10:33
   - Fix: Angabe der Kompatibilität auf 6.2 korrigiert
 
