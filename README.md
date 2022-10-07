@@ -104,6 +104,10 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.5.1  @ 07.10.2022 13:59
+  - update submodule CommonStubs
+    Fix: Update-Prüfung wieder funktionsfähig
+
 - 2.5 @ 05.07.2022 15:47
   - Verbesserung: IPS-Status wird nur noch gesetzt, wenn er sich ändert
   - update submodule CommonStubs
