@@ -105,9 +105,9 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 ## 7. Versions-Historie
 
 - 2.6 @ 04.07.2023 14:44
+  - Vorbereitung auf IPS 7 / PHP 8.2
   - update submodule CommonStubs
     - Absicherung bei Zugriff auf Objekte und Inhalte
-    - Vorbereitung auf IPS 7 / PHP 8.2
 
 - 2.5.1  @ 07.10.2022 13:59
   - update submodule CommonStubs
