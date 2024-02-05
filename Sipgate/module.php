@@ -80,14 +80,8 @@ class Sipgate extends IPSModule
             return;
         }
 
-        $vpos = 0;
-
+        $vpos = 1;
         $this->MaintainVariable('Credit', $this->Translate('credit'), VARIABLETYPE_FLOAT, 'Sipgate.Currency', $vpos++, true);
-
-        $refs = $this->GetReferenceList();
-        foreach ($refs as $ref) {
-            $this->UnregisterReference($ref);
-        }
 
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
