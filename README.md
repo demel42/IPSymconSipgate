@@ -104,6 +104,10 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.9 @ 02.01.2025 14:28
+  - interne Änderung
+  - update submodule CommonStubs
+
 - 2.8 @ 29.01.2024 10:46
   - Änderung: Medien-Objekte haben zur eindeutigen Identifizierung jetzt ebenfalls ein Ident
   - Neu: Schalter, um Daten zu API-Aufrufen zu sammeln
