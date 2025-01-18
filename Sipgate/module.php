@@ -204,32 +204,32 @@ class Sipgate extends IPSModule
         ];
 
         $formActions[] = [
-            'type'      => 'ExpansionPanel',
-            'caption'   => 'Expert area',
-            'expanded'  => false,
-            'items'     => [
+            'type'     => 'ExpansionPanel',
+            'caption'  => 'Expert area',
+            'expanded' => false,
+            'items'    => [
                 $this->GetInstallVarProfilesFormItem(),
             ]
         ];
 
         $formActions[] = [
-            'type'      => 'ExpansionPanel',
-            'caption'   => 'Test area',
-            'expanded'  => false,
-            'items'     => [
+            'type'     => 'ExpansionPanel',
+            'caption'  => 'Test area',
+            'expanded' => false,
+            'items'    => [
                 [
-                    'type'    => 'TestCenter',
+                    'type' => 'TestCenter',
                 ],
                 [
-                    'type'    => 'Label',
+                    'type' => 'Label',
                 ],
                 [
                     'type'    => 'Label',
                     'caption' => ''
                 ],
                 [
-                    'type'    => 'RowLayout',
-                    'items'   => [
+                    'type'  => 'RowLayout',
+                    'items' => [
                         [
                             'type'    => 'ValidationTextBox',
                             'name'    => 'telno',
@@ -263,8 +263,8 @@ class Sipgate extends IPSModule
                     'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ShowForwardings", "");',
                 ],
                 [
-                    'type'    => 'RowLayout',
-                    'items'   => [
+                    'type'  => 'RowLayout',
+                    'items' => [
                         [
                             'type'    => 'ValidationTextBox',
                             'name'    => 'destination',
@@ -629,6 +629,25 @@ class Sipgate extends IPSModule
         }
 
         $this->PopupMessage($msg);
+    }
+
+    public function InitiateCall(string $telno)
+    {
+        $telno = preg_replace('<^\\+>', '00', $telno);
+        $telno = preg_replace('<\\D+>', '', $telno);
+        $postdata = [
+            'deviceId' => 'e0',
+            'caller'   => 'e0',
+            'callee'   => $telno,
+            'callerId' => ''
+        ];
+        $cdata = $this->do_ApiCall('/sessions/calls', $postdata, true);
+        if ($cdata == '') {
+            return false;
+        }
+        $jdata = json_decode($cdata, true);
+        $status = $this->GetArrayElem($jdata, 'status', 'fail');
+        return $status == 'ok' ? true : false;
     }
 
     public function SendSMS(string $telno, string $msg)

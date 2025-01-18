@@ -1,0 +1,36 @@
+{
+    "id": "{3592C289-1ABB-8828-4EA0-7EA0D6D522A4}",
+    "caption": "Initiate call via Sipgate",
+    "form": [
+        {
+            "type": "ValidationTextBox",
+            "name": "TELNO",
+            "caption": "Telno",
+            "validate": "^$|^((\\+|00)[1-9]\\d{0,3}|0 ?[1-9]|\\(00? ?[1-9][\\d ]*\\))[\\d\\-/ ]*$"
+        }
+    ],
+    "action": "Sipgate_InitiateCall($_IPS['TARGET'], $_IPS['TELNO']);",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{D8C71279-8E04-4466-8996-04B6B6CF2B1D}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "priority": 10,
+    "category": "target",
+    "description": "Initiate call via Sipgate",
+    "format": "Initiate call to \"{TELNO}\"",
+    "locale": {
+        "de": {
+            "Initiate call via Sipgate": "Anruf einleiten über Sipgate",
+            "Telno": "Telefonnummer",
+            "Initiate call to \"{TELNO}\"": "Anruf an \"{TELNO}\" einleiten"
+        }
+    }
+}

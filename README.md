@@ -51,8 +51,11 @@ In dem Konfigurationsdialog siehe **Anmeldung bei Sipgate""
 
 ### zentrale Funktion
 
+`boolean Sipgate_InitiateCall(integer $InstanzID, string Telno)`<br>
+Leitet einen Anruf an die angegebene Nummer ein.
+
 `boolean Sipgate_SendSMS(integer $InstanzID, string Telno, string Message)`<br>
-Sendet eine SMS an die angegebene nUmmer. Die Länge der SMS wird ggfs auf 160 Zeichen verkürzt.
+Sendet eine SMS an die angegebene Nummer. Die Länge der SMS wird ggfs auf 160 Zeichen verkürzt.
 Der Rückgabewert ist __*true*__, wenn die SMS an Sipgate abgesendet werden konnte, eine Information, ob die SMS den Empfänger erreicht hat, gibt es (leider) nicht.
 
 `string Sipgate_GetHistory(integer $InstanzID)`<br>
@@ -103,6 +106,9 @@ GUIDs
 API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate.io/rest-api/api-reference/
 
 ## 7. Versions-Historie
+
+- 2.10 @ 18.01.2025 09:17
+  - Neu: Anruf einleiten via _InitiateCall()_ (Dank an @thomas für die Implementierung)
 
 - 2.9 @ 02.01.2025 14:28
   - interne Änderung
