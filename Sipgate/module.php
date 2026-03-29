@@ -365,7 +365,7 @@ class Sipgate extends IPSModule
                 $err = 'got http-code ' . $httpcode . ' (server error)';
             } else {
                 $statuscode = self::$IS_HTTPERROR;
-                $err = 'got http-code ' . $httpcode;
+                $err = 'got http-code ' . $httpcode . ' (' . $this->HttpCode2Text($httpcode) . ')';
             }
         } elseif ($cdata == '') {
             $statuscode = self::$IS_NODATA;
@@ -864,15 +864,15 @@ class Sipgate extends IPSModule
         } elseif ($httpcode != 200) {
             if ($httpcode == 401) {
                 $statuscode = self::$IS_UNAUTHORIZED;
-                $err = "got http-code $httpcode (unauthorized)";
+                $err = 'got http-code ' . $httpcode . ' (unauthorized)';
             } elseif ($httpcode >= 500 && $httpcode <= 599) {
                 $statuscode = self::$IS_SERVERERROR;
-                $err = "got http-code $httpcode (server error)";
+                $err = 'got http-code ' . $httpcode . ' (server error)';
             } elseif ($httpcode == 204) {
                 $data = json_encode(['status' => 'ok']);
             } else {
                 $statuscode = self::$IS_HTTPERROR;
-                $err = "got http-code $httpcode";
+                $err = 'got http-code ' . $httpcode . ' (' . $this->HttpCode2Text($httpcode) . ')';
             }
         } elseif ($cdata == '') {
             $statuscode = self::$IS_INVALIDDATA;

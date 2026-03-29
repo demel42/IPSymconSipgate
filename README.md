@@ -107,6 +107,11 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.11 @ 29.03.2026 15:00
+  - Fix: Anpassung für IPS 9
+  - interne Änderung
+  - update submodule CommonStubs
+
 - 2.10 @ 18.01.2025 09:17
   - Neu: Anruf einleiten via _InitiateCall()_ (Dank an @thomas für die Implementierung)
 
