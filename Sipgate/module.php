@@ -46,6 +46,14 @@ class Sipgate extends IPSModule
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
 
+    public function Destroy()
+    {
+        if (IPS_InstanceExists($this->InstanceID) == false) {
+            $this->CleanupOAuth();
+        }
+        parent::Destroy();
+    }
+
     public function MessageSink($tstamp, $senderID, $message, $data)
     {
         parent::MessageSink($tstamp, $senderID, $message, $data);
@@ -345,11 +353,16 @@ class Sipgate extends IPSModule
         if ($cdata == false) {
             $this->LogMessage('file_get_contents() failed: url=' . $url . ', context=' . print_r($context, true), KL_WARNING);
             $this->SendDebug(__FUNCTION__, 'file_get_contents() failed: url=' . $url . ', context=' . print_r($context, true), 0);
-        } elseif (isset($http_response_header[0]) && preg_match('/HTTP\/[0-9\.]+\s+([0-9]*)/', $http_response_header[0], $r)) {
-            $httpcode = $r[1];
         } else {
-            $this->LogMessage('missing http_response_header, cdata=' . $cdata, KL_WARNING);
-            $this->SendDebug(__FUNCTION__, 'missing http_response_header, cdata=' . $cdata, 0);
+            if (IPS_GetKernelVersion() >= 8.5) {
+                $http_response_header = http_get_last_response_headers();
+            }
+            if (isset($http_response_header[0]) && preg_match('/HTTP\/[0-9\.]+\s+([0-9]*)/', $http_response_header[0], $r)) {
+                $httpcode = $r[1];
+            } else {
+                $this->LogMessage('missing http_response_header, cdata=' . $cdata, KL_WARNING);
+                $this->SendDebug(__FUNCTION__, 'missing http_response_header, cdata=' . $cdata, 0);
+            }
         }
         $this->SendDebug(__FUNCTION__, ' => httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
         $this->SendDebug(__FUNCTION__, '    cdata=' . $cdata, 0);
@@ -568,7 +581,7 @@ class Sipgate extends IPSModule
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
         $items = $jdata['items'];
-        if (count($items) > 0) {
+        if (is_array($items) && count($items) > 0) {
             $item = $items[0];
             $firstname = $item['firstname'];
             $lastname = $item['lastname'];
@@ -850,7 +863,9 @@ class Sipgate extends IPSModule
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        if (IPS_GetKernelVersion() < 8.5) {
+            curl_close($ch);
+        }
 
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);

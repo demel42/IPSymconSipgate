@@ -107,6 +107,10 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.12 @ 11.05.2026 15:02
+  - Fix: Änderung von deprecated php code
+  - update submodule CommonStubs
+
 - 2.11 @ 29.03.2026 15:00
   - Fix: Anpassung für IPS 9
   - interne Änderung

@@ -55,6 +55,6 @@ trait SipgateLocalLib
             $this->SendDebug(__FUNCTION__, 'reInstall=' . $this->bool2str($reInstall), 0);
         }
 
-        $this->CreateVarProfile('Sipgate.Currency', VARIABLETYPE_FLOAT, ' €', 0, 0, 0, 2, 'Euro', '', $reInstall);
+        $this->CreateVarProfile('Sipgate.Currency', VARIABLETYPE_FLOAT, ' €', 0, 0, 0, 2, 'Euro', [], $reInstall);
     }
 }
