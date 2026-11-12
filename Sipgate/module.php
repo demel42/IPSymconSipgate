@@ -60,7 +60,10 @@ class Sipgate extends IPSModule
 
         if ($message == IPS_KERNELMESSAGE && $data[0] == KR_READY) {
             $this->RegisterOAuth($this->oauthIdentifer);
-            $this->SetUpdateInterval();
+            $module_disable = $this->ReadPropertyBoolean('module_disable');
+            if ($module_disable == false) {
+                $this->SetUpdateInterval();
+            }
         }
     }
 
@@ -603,7 +606,7 @@ class Sipgate extends IPSModule
         $msg .= '  ' . $this->Translate('sip-id') . '=' . $masterSipId . PHP_EOL;
         $msg .= '  ' . $this->Translate('name') . '=' . $firstname . ' ' . $lastname . PHP_EOL;
 
-        $cdata = $this->do_ApiCall('/w0/phonelines', '', true, 'GET');
+        $cdata = $this->do_ApiCall('/channels', '', true, 'GET');
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
@@ -613,12 +616,12 @@ class Sipgate extends IPSModule
         foreach ($items as $item) {
             $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
             $id = $item['id'];
-            $alias = $item['alias'];
+            $name = $item['name'];
 
             $msg .= '  ';
             $msg .= $this->Translate('phone-id') . '=' . $id;
             $msg .= ', ';
-            $msg .= $this->Translate('alias') . '=' . $alias;
+            $msg .= $this->Translate('name') . '=' . $name;
             $msg .= PHP_EOL;
         }
 
@@ -644,17 +647,48 @@ class Sipgate extends IPSModule
         $this->PopupMessage($msg);
     }
 
+    public function toE164(string $telno, string $countryCode = '49'): ?string
+    {
+        $telno = trim($telno);
+        $hasPlus = str_starts_with($telno, '+');
+
+        // alles außer Ziffern entfernen
+        $digits = preg_replace('/\D+/', '', $telno);
+
+        if ($digits === '') {
+            return false;
+        }
+
+        if ($hasPlus) {
+            // bereits international: +49...
+        } elseif (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);            // 0049... -> 49...
+        } elseif (str_starts_with($digits, '0')) {
+            $digits = $countryCode . substr($digits, 1); // 0171... -> 49171...
+        } else {
+            return false; // mehrdeutig
+        }
+
+        // E.164: max. 15 Ziffern
+        if (strlen($digits) < 8 || strlen($digits) > 15) {
+            return false;
+        }
+
+        return '+' . $digits;
+    }
+
     public function InitiateCall(string $telno)
     {
-        $telno = preg_replace('<^\\+>', '00', $telno);
-        $telno = preg_replace('<\\D+>', '', $telno);
+        $telno = $this->toE164($telno);
+        if ($telno === false) {
+            return false;
+        }
+
         $postdata = [
-            'deviceId' => 'e0',
-            'caller'   => 'e0',
-            'callee'   => $telno,
-            'callerId' => ''
+            'deviceId'     => 'e0',
+            'targetNumber' => $telno,
         ];
-        $cdata = $this->do_ApiCall('/sessions/calls', $postdata, true);
+        $cdata = $this->do_ApiCall('/calls', $postdata, true);
         if ($cdata == '') {
             return false;
         }
@@ -665,8 +699,11 @@ class Sipgate extends IPSModule
 
     public function SendSMS(string $telno, string $msg)
     {
-        $telno = preg_replace('<^\\+>', '00', $telno);
-        $telno = preg_replace('<\\D+>', '', $telno);
+        $telno = $this->toE164($telno);
+        if ($telno === false) {
+            return false;
+        }
+
         $postdata = [
             'smsId'     => 's0',
             'recipient' => $telno,
@@ -859,16 +896,20 @@ class Sipgate extends IPSModule
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        $cdata = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+        $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_info = curl_getinfo($ch);
         if (IPS_GetKernelVersion() < 8.5) {
             curl_close($ch);
         }
 
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, ' => response=' . $response, 0);
 
         $statuscode = 0;
         $err = '';
@@ -876,7 +917,13 @@ class Sipgate extends IPSModule
         if ($cerrno) {
             $statuscode = self::$IS_SERVERERROR;
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
-        } elseif ($httpcode != 200) {
+        } else {
+            $header_size = $curl_info['header_size'];
+            $head = substr($response, 0, $header_size);
+            $body = substr($response, $header_size);
+            $this->SendDebug(__FUNCTION__, ' => head=' . $head, 0);
+            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+
             if ($httpcode == 401) {
                 $statuscode = self::$IS_UNAUTHORIZED;
                 $err = 'got http-code ' . $httpcode . ' (unauthorized)';
@@ -885,24 +932,30 @@ class Sipgate extends IPSModule
                 $err = 'got http-code ' . $httpcode . ' (server error)';
             } elseif ($httpcode == 204) {
                 $data = json_encode(['status' => 'ok']);
-            } else {
+            } elseif ($httpcode != 200) {
                 $statuscode = self::$IS_HTTPERROR;
                 $err = 'got http-code ' . $httpcode . ' (' . $this->HttpCode2Text($httpcode) . ')';
             }
-        } elseif ($cdata == '') {
-            $statuscode = self::$IS_INVALIDDATA;
-            $err = 'no data';
-        } else {
+        }
+
+        if ($statuscode == 0) {
+            if ($body == '') {
+                $statuscode = self::$IS_INVALIDDATA;
+                $err = 'no data';
+            }
+        }
+
+        if ($statuscode == 0) {
             if ($isJson) {
-                $jdata = json_decode($cdata, true);
-                if ($jdata == '') {
+                $jbody = @json_decode($body, true);
+                if ($jbody == '') {
                     $statuscode = self::$IS_INVALIDDATA;
                     $err = 'malformed response';
                 } else {
-                    $data = $cdata;
+                    $data = $body;
                 }
             } else {
-                $data = $cdata;
+                $data = $body;
             }
         }
 
@@ -937,12 +990,12 @@ class Sipgate extends IPSModule
             foreach ($phones as $phone) {
                 $this->SendDebug(__FUNCTION__, 'phone=' . print_r($phone, true), 0);
                 $id = $phone['id'];
-                $alias = $phone['alias'];
+                $name = $phone['name'];
 
                 $msg .= '  ';
                 $msg .= $this->Translate('phoneline') . '=' . $id;
                 $msg .= ', ';
-                $msg .= $this->Translate('alias') . '=' . $alias;
+                $msg .= $this->Translate('name') . '=' . $name;
                 $msg .= PHP_EOL;
 
                 $cdata = $this->GetForwardings($id);
@@ -987,7 +1040,7 @@ class Sipgate extends IPSModule
                 ]
             ]
         ];
-        $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', $postdata, true, 'PUT');
+        $cdata = $this->do_ApiCall('/channels/' . $deviceId . '/forwardings', $postdata, true, 'PUT');
         if ($cdata == '') {
             return false;
         }

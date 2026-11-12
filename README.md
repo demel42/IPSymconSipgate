@@ -107,6 +107,9 @@ API-Dokumentation: https://api.sipgate.com/v2/doc bzw. https://developer.sipgate
 
 ## 7. Versions-Historie
 
+- 2.13 @ 12.11.2026 11:46
+  - Fix: Umstellung auf die NEO-API
+
 - 2.12 @ 11.05.2026 15:02
   - Fix: Änderung von deprecated php code
   - update submodule CommonStubs
