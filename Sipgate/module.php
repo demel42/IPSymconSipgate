@@ -10,6 +10,9 @@ class Sipgate extends IPSModule
     use Sipgate\StubsCommonLib;
     use SipgateLocalLib;
 
+    public static $API_VERSION_CLASSIC = 0;
+    public static $API_VERSION_NEO = 1;
+
     private $oauthIdentifer = 'sipgate';
 
     public function __construct(string $InstanceID)
@@ -29,6 +32,8 @@ class Sipgate extends IPSModule
         parent::Create();
 
         $this->RegisterPropertyBoolean('module_disable', false);
+
+        $this->RegisterPropertyInteger('api_version', self::$API_VERSION_CLASSIC);
 
         $this->RegisterPropertyInteger('UpdateDataInterval', '24');
 
@@ -166,6 +171,22 @@ class Sipgate extends IPSModule
                     'caption' => 'Return to this configuration form.'
                 ],
             ],
+        ];
+
+        $formElements[] = [
+            'type'    => 'Select',
+            'name'    => 'api_version',
+            'options' => [
+                [
+                    'caption' => 'Classic',
+                    'value'   => self::$API_VERSION_CLASSIC,
+                ],
+                [
+                    'caption' => 'Neo',
+                    'value'   => self::$API_VERSION_NEO,
+                ],
+            ],
+            'caption' => 'API version',
         ];
 
         $formElements[] = [
@@ -550,6 +571,11 @@ class Sipgate extends IPSModule
     private function TestAccount()
     {
         $cdata = $this->do_ApiCall('/account', '', true, 'GET');
+        if ($this->GetStatus() != IS_ACTIVE) {
+            $msg = $this->Translate($this->GetStatusText()) . PHP_EOL;
+            $this->PopupMessage($msg);
+            return;
+        }
         if ($cdata == '') {
             $msg = $this->Translate('invalid account-data');
             $this->PopupMessage($msg);
@@ -566,6 +592,11 @@ class Sipgate extends IPSModule
             $this->PopupMessage($msg);
             return;
         }
+        if ($this->GetStatus() != IS_ACTIVE) {
+            $msg = $this->Translate($this->GetStatusText()) . PHP_EOL;
+            $this->PopupMessage($msg);
+            return;
+        }
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
@@ -573,6 +604,11 @@ class Sipgate extends IPSModule
         $currency = $jdata['currency'];
 
         $cdata = $this->do_ApiCall('/authorization/userinfo', '', true, 'GET');
+        if ($this->GetStatus() != IS_ACTIVE) {
+            $msg = $this->Translate($this->GetStatusText()) . PHP_EOL;
+            $this->PopupMessage($msg);
+            return;
+        }
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
@@ -580,6 +616,11 @@ class Sipgate extends IPSModule
         $masterSipId = $jdata['masterSipId'];
 
         $cdata = $this->do_ApiCall('/users', '', true, 'GET');
+        if ($this->GetStatus() != IS_ACTIVE) {
+            $msg = $this->Translate($this->GetStatusText()) . PHP_EOL;
+            $this->PopupMessage($msg);
+            return;
+        }
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
@@ -606,42 +647,64 @@ class Sipgate extends IPSModule
         $msg .= '  ' . $this->Translate('sip-id') . '=' . $masterSipId . PHP_EOL;
         $msg .= '  ' . $this->Translate('name') . '=' . $firstname . ' ' . $lastname . PHP_EOL;
 
-        $cdata = $this->do_ApiCall('/channels', '', true, 'GET');
+        $api_version = $this->ReadPropertyInteger('api_version');
+        if ($api_version == self::$API_VERSION_CLASSIC) {
+            $endpoint = '/w0/phonelines';
+        } else {
+            $endpoint = '/channels';
+        }
+        $cdata = $this->do_ApiCall($endpoint, '', true, 'GET');
+        if ($this->GetStatus() != IS_ACTIVE) {
+            $msg = $this->Translate($this->GetStatusText()) . PHP_EOL;
+            $this->PopupMessage($msg);
+            return;
+        }
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
 
         $msg .= PHP_EOL;
         $msg .= $this->Translate('phonelines') . PHP_EOL;
-        $items = $jdata['items'];
-        foreach ($items as $item) {
-            $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
-            $id = $item['id'];
-            $name = $item['name'];
-
-            $msg .= '  ';
-            $msg .= $this->Translate('phone-id') . '=' . $id;
-            $msg .= ', ';
-            $msg .= $this->Translate('name') . '=' . $name;
-            $msg .= PHP_EOL;
+        if (is_array($jdata['items'])) {
+            foreach ($jdata['items'] as $item) {
+                $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
+                $msg .= '  ';
+                $id = $item['id'];
+                $msg .= $this->Translate('phone-id') . '=' . $id;
+                $msg .= ', ';
+                if ($api_version == self::$API_VERSION_CLASSIC) {
+                    $alias = $item['alias'];
+                    $msg .= $this->Translate('alias') . '=' . $alias;
+                } else {
+                    $name = $item['name'];
+                    $msg .= $this->Translate('name') . '=' . $name;
+                }
+                $msg .= PHP_EOL;
+            }
         }
 
         $cdata = $this->do_ApiCall('/w0/devices', '', true, 'GET');
+        if ($this->GetStatus() != IS_ACTIVE) {
+            $msg = $this->Translate($this->GetStatusText()) . PHP_EOL;
+            $this->PopupMessage($msg);
+            return;
+        }
         $jdata = json_decode($cdata, true);
         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
-        $items = $jdata['items'];
 
         $msg .= PHP_EOL;
         $msg .= $this->Translate('devices') . PHP_EOL;
-        foreach ($items as $item) {
-            $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
-            $id = $item['id'];
-            $alias = $item['alias'];
+        if (is_array($jdata['items'])) {
+            foreach ($jdata['items'] as $item) {
+                $this->SendDebug(__FUNCTION__, 'item=' . print_r($item, true), 0);
+                $id = $item['id'];
+                $alias = $item['alias'];
 
-            $msg .= '  ';
-            $msg .= $this->Translate('device-id') . '=' . $id;
-            $msg .= ', ';
-            $msg .= $this->Translate('alias') . '=' . $alias;
-            $msg .= PHP_EOL;
+                $msg .= '  ';
+                $msg .= $this->Translate('device-id') . '=' . $id;
+                $msg .= ', ';
+                $msg .= $this->Translate('alias') . '=' . $alias;
+                $msg .= PHP_EOL;
+            }
         }
 
         $this->PopupMessage($msg);
@@ -679,16 +742,29 @@ class Sipgate extends IPSModule
 
     public function InitiateCall(string $telno)
     {
-        $telno = $this->toE164($telno);
-        if ($telno === false) {
-            return false;
+        $api_version = $this->ReadPropertyInteger('api_version');
+        if ($api_version == self::$API_VERSION_CLASSIC) {
+            $telno = preg_replace('<^\\+>', '00', $telno);
+            $telno = preg_replace('<\\D+>', '', $telno);
+            $postdata = [
+                'deviceId' => 'e0',
+                'caller'   => 'e0',
+                'callee'   => $telno,
+                'callerId' => ''
+            ];
+            $endpoint = '/sessions/calls';
+        } else {
+            $telno = $this->toE164($telno);
+            if ($telno === false) {
+                return false;
+            }
+            $postdata = [
+                'deviceId'     => 'e0',
+                'targetNumber' => $telno,
+            ];
+            $endpoint = '/calls';
         }
-
-        $postdata = [
-            'deviceId'     => 'e0',
-            'targetNumber' => $telno,
-        ];
-        $cdata = $this->do_ApiCall('/calls', $postdata, true);
+        $cdata = $this->do_ApiCall($endpoint, $postdata, true);
         if ($cdata == '') {
             return false;
         }
@@ -699,11 +775,16 @@ class Sipgate extends IPSModule
 
     public function SendSMS(string $telno, string $msg)
     {
-        $telno = $this->toE164($telno);
-        if ($telno === false) {
-            return false;
+        $api_version = $this->ReadPropertyInteger('api_version');
+        if ($api_version == self::$API_VERSION_CLASSIC) {
+            $telno = preg_replace('<^\\+>', '00', $telno);
+            $telno = preg_replace('<\\D+>', '', $telno);
+        } else {
+            $telno = $this->toE164($telno);
+            if ($telno === false) {
+                return false;
+            }
         }
-
         $postdata = [
             'smsId'     => 's0',
             'recipient' => $telno,
@@ -852,9 +933,11 @@ class Sipgate extends IPSModule
         $header[] = 'Authorization: Bearer ' . $access_token;
 
         $cdata = $this->do_HttpRequest($cmd_url, $header, $postdata, $isJson, $customrequest);
-        $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
+        if ($cdata != '') {
+            $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
+            $this->MaintainStatus(IS_ACTIVE);
+        }
 
-        $this->MaintainStatus(IS_ACTIVE);
         return $cdata;
     }
 
@@ -933,8 +1016,13 @@ class Sipgate extends IPSModule
             } elseif ($httpcode == 204) {
                 $data = json_encode(['status' => 'ok']);
             } elseif ($httpcode != 200) {
-                $statuscode = self::$IS_HTTPERROR;
-                $err = 'got http-code ' . $httpcode . ' (' . $this->HttpCode2Text($httpcode) . ')';
+                if ($body == 'This endpoint requires a sipgate Classic PBX Account') {
+                    $statuscode = self::$IS_APIVERSION;
+                    $err = 'wrong API version';
+                } else {
+                    $statuscode = self::$IS_HTTPERROR;
+                    $err = 'got http-code ' . $httpcode . ' (' . $this->HttpCode2Text($httpcode) . ')';
+                }
             }
         }
 
@@ -963,6 +1051,7 @@ class Sipgate extends IPSModule
             $this->LogMessage('url=' . $url . ' => statuscode=' . $statuscode . ', err=' . $err, KL_WARNING);
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
             $this->MaintainStatus($statuscode);
+            return false;
         }
 
         return $data;
@@ -970,7 +1059,13 @@ class Sipgate extends IPSModule
 
     public function GetForwardings(string $deviceId = 'p0')
     {
-        $cdata = $this->do_ApiCall('/w0/phonelines/' . $deviceId . '/forwardings', '', true, 'GET');
+        $api_version = $this->ReadPropertyInteger('api_version');
+        if ($api_version == self::$API_VERSION_CLASSIC) {
+            $endpoint = '/w0/phonelines';
+        } else {
+            $endpoint = '/channels';
+        }
+        $cdata = $this->do_ApiCall($endpoint . $deviceId . '/forwardings', '', true, 'GET');
         $this->SendDebug(__FUNCTION__, 'cdata=' . print_r($cdata, true), 0);
 
         $this->MaintainStatus(IS_ACTIVE);
@@ -1031,6 +1126,12 @@ class Sipgate extends IPSModule
 
     public function SetForwarding(string $destination, int $timeout, bool $active, string $deviceId = 'p0')
     {
+        $api_version = $this->ReadPropertyInteger('api_version');
+        if ($api_version == self::$API_VERSION_CLASSIC) {
+            $endpoint = '/w0/phonelines/';
+        } else {
+            $endpoint = '/channels/';
+        }
         $postdata = [
             'forwardings' => [
                 [
@@ -1040,7 +1141,7 @@ class Sipgate extends IPSModule
                 ]
             ]
         ];
-        $cdata = $this->do_ApiCall('/channels/' . $deviceId . '/forwardings', $postdata, true, 'PUT');
+        $cdata = $this->do_ApiCall($endpoint . $deviceId . '/forwardings', $postdata, true, 'PUT');
         if ($cdata == '') {
             return false;
         }

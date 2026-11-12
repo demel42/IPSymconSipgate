@@ -10,6 +10,7 @@ trait SipgateLocalLib
     public static $IS_HTTPERROR = IS_EBASE + 13;
     public static $IS_NODATA = IS_EBASE + 14;
     public static $IS_INVALIDDATA = IS_EBASE + 15;
+    public static $IS_APIVERSION = IS_EBASE + 16;
 
     private function GetFormStatus()
     {
@@ -21,6 +22,7 @@ trait SipgateLocalLib
         $formStatus[] = ['code' => self::$IS_HTTPERROR, 'icon' => 'error', 'caption' => 'Instance is inactive (http error)'];
         $formStatus[] = ['code' => self::$IS_NODATA, 'icon' => 'error', 'caption' => 'Instance is inactive (no data)'];
         $formStatus[] = ['code' => self::$IS_INVALIDDATA, 'icon' => 'error', 'caption' => 'Instance is inactive (invalid data)'];
+        $formStatus[] = ['code' => self::$IS_APIVERSION, 'icon' => 'error', 'caption' => 'Instance is inactive (wrong api version)'];
 
         return $formStatus;
     }

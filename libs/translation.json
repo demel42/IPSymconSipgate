@@ -8,6 +8,7 @@
 			"Instance is inactive (http error)": "Instanz ist inaktiv (HTTP-Fehler)",
 			"Instance is inactive (no data)": "Instanz ist inaktiv (keine Daten)",
 			"Instance is inactive (invalid data)": "Instanz ist inaktiv (ungültige Daten)",
+			"Instance is inactive (wrong api version)": "Instanz ist inaktiv (falsche API-Version)",
 
 			"__end__": ""
 		}

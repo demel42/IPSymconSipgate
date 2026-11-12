@@ -17,6 +17,10 @@
 			"Return to this configuration form.":
 				"Danach zu diesem Konfigurationsformular zurückkehren und fortfahren.",
 
+			"API version": "API-Version",
+			"Classic": "Classic",
+			"Neo": "Neo",
+
 			"Call settings": "Abrufeinstellungen",
 			"Update interval": "Aktualisierungsintervall",
 			"Hours": "Stunden",
